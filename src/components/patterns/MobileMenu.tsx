@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useId, useState } from "react";
 
+import { Wordmark } from "@/components/brand/NimiPotMark";
 import { Stamp } from "@/components/primitives/Stamp";
 import { cn } from "@/lib/cn";
 
@@ -133,9 +134,41 @@ export function MobileMenu({
             className={cn(
               "absolute inset-x-0 top-0 max-h-screen overflow-y-auto bg-cream-50",
               "border-b border-cream-200 shadow-md",
-              "px-page-gutter pb-8 pt-20",
+              "px-page-gutter pb-8 pt-4",
             )}
           >
+            {/* Drawer header — wordmark for orientation + an explicit close button.
+                The hamburger trigger is covered by the drawer once open, so this
+                close affordance is the primary way out (alongside Escape and the
+                overlay click). */}
+            <div className="mb-6 flex items-center justify-between">
+              <Wordmark />
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "inline-flex h-11 w-11 items-center justify-center",
+                  "border border-transparent text-maroon-700",
+                  "transition-colors duration-fast hover:border-maroon-200/40",
+                )}
+              >
+                <svg
+                  aria-hidden
+                  width="22"
+                  height="22"
+                  viewBox="0 0 22 22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                >
+                  <line x1="5" y1="5" x2="17" y2="17" />
+                  <line x1="17" y1="5" x2="5" y2="17" />
+                </svg>
+              </button>
+            </div>
+
             <ul className="m-0 list-none p-0">
               {items.map((item) => {
                 const active =
