@@ -24,8 +24,8 @@ const help = [
  */
 export function Footer() {
   return (
-    <footer className="border-t border-cream-200 bg-cream-100 px-page-gutter py-16">
-      <div className="mx-auto grid max-w-page grid-cols-1 gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <footer className="border-t border-cream-200 bg-cream-100 px-page-gutter py-12 md:py-16">
+      <div className="mx-auto grid max-w-page grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <h5 className="mb-4 font-display text-3xl font-medium text-maroon-600">
             About Nimi Events

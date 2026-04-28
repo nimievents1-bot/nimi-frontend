@@ -18,7 +18,7 @@ export default function TermsPage() {
         lede="The boring necessary stuff. We've kept it as plain as we can."
         imageUrl={images.hero.terms}
       />
-      <section className="px-page-gutter py-20">
+      <section className="px-page-gutter section-tight">
         <article className="mx-auto max-w-prose font-sans text-base leading-relaxed text-neutral-800">
           <p className="font-display text-xl italic text-neutral-700">
             Last updated — placeholder. Final wording supplied by legal counsel before launch.

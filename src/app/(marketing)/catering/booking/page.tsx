@@ -18,7 +18,7 @@ export default function CateringBookingPage() {
         title="Tell us about your event."
         lede="The more we know, the better we can plan. We reply within one working day."
       />
-      <section className="px-page-gutter py-20">
+      <section className="px-page-gutter section-tight">
         <div className="mx-auto max-w-2xl">
           <p className="font-sans text-base text-neutral-700">
             Lead times: 6–12 months for larger events, minimum three months for smaller ones.

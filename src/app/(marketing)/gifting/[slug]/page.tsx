@@ -91,7 +91,7 @@ export default async function GiftCollectionPage({ params }: { params: { slug: s
           c.imageUrl ?? SLUG_FALLBACK_IMAGE[c.slug] ?? CATEGORY_FALLBACK_IMAGE[c.category] ?? images.hero.gifting
         }
       />
-      <section className="px-page-gutter py-20">
+      <section className="px-page-gutter section-tight">
         <div className="mx-auto grid max-w-page gap-12 lg:grid-cols-[1.1fr_1fr]">
           <div>
             <div className="mb-6 flex flex-wrap items-center gap-3">

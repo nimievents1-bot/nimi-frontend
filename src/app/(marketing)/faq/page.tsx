@@ -80,7 +80,7 @@ export default function FaqPage() {
         lede="The questions we hear most often, with the answers we tend to give."
         imageUrl={images.hero.faq}
       />
-      <section className="px-page-gutter py-20">
+      <section className="px-page-gutter section-tight">
         <div className="mx-auto max-w-prose">
           {groups.map((group) => (
             <div key={group.heading} className="mb-12">

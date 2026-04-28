@@ -44,8 +44,11 @@ export function Hero({
     <section
       className={cn(
         "relative flex flex-col items-center justify-center overflow-hidden",
-        "px-page-gutter py-20 text-center text-cream-50",
-        height === "tall" ? "min-h-[540px]" : "min-h-[340px]",
+        "px-page-gutter py-14 text-center text-cream-50 md:py-20",
+        // Responsive min-height tokens (set in globals.css):
+        //   tall  → 420px on mobile, 540px on tablet+
+        //   short → 260px on mobile, 340px on tablet+
+        height === "tall" ? "min-h-hero-tall" : "min-h-hero-short",
         className,
       )}
       style={{ backgroundImage, backgroundSize: "cover", backgroundPosition: "center" }}
@@ -55,13 +58,15 @@ export function Hero({
           {eyebrow}
         </span>
       ) : null}
-      <h1 className="m-0 max-w-[18ch] font-display text-[clamp(2.5rem,6vw,4.75rem)] font-medium leading-[1.08] text-cream-50">
+      <h1 className="m-0 max-w-[18ch] font-display text-[clamp(2rem,7vw,4.75rem)] font-medium leading-[1.08] text-cream-50">
         {title}
       </h1>
       {lede ? (
-        <p className="mt-4 max-w-[56ch] font-display text-xl italic text-cream-100/95">{lede}</p>
+        <p className="mt-4 max-w-[56ch] font-display text-lg italic text-cream-100/95 md:text-xl">
+          {lede}
+        </p>
       ) : null}
-      {children ? <div className="mt-8">{children}</div> : null}
+      {children ? <div className="mt-6 md:mt-8">{children}</div> : null}
       {height === "tall" ? (
         <span
           aria-hidden

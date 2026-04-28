@@ -4,6 +4,8 @@ import { Wordmark } from "@/components/brand/NimiPotMark";
 import { Stamp } from "@/components/primitives/Stamp";
 import { cn } from "@/lib/cn";
 
+import { MobileMenu } from "./MobileMenu";
+
 interface HeaderProps {
   /** Render in light tone (over dark photography). Default false. */
   onDark?: boolean;
@@ -25,6 +27,11 @@ const navItems = [
  * Site-wide header — wordmark left, letter-spaced uppercase nav middle,
  * persistent italic-serif "Get in Touch" stamp on the right.
  *
+ * Responsive behaviour:
+ *   - Below md (768px): nav and stamp hide; a hamburger trigger replaces them
+ *     and opens a full-width slide-down drawer (`MobileMenu`).
+ *   - md and up: full editorial nav with the stamp pinned right.
+ *
  * Two surface variants:
  *   - default: cream background, maroon text  (most pages)
  *   - onDark:  transparent over dark hero, cream nav, cream stamp
@@ -40,13 +47,20 @@ export function Header({ onDark = false, current = "" }: HeaderProps) {
   return (
     <header
       className={cn(
-        "grid items-center gap-8 px-8 py-5",
-        "grid-cols-[auto,1fr,auto]",
+        "grid items-center gap-4 px-page-gutter py-4 md:gap-8 md:py-5",
+        // Mobile: wordmark left, hamburger right (two columns).
+        // Desktop: wordmark / nav / stamp (three columns).
+        "grid-cols-[1fr_auto] md:grid-cols-[auto_1fr_auto]",
         onDark ? "" : "border-b border-cream-200 bg-cream-50",
       )}
     >
       <Wordmark withTag onDark={onDark} />
-      <nav aria-label="Primary" className="flex justify-center gap-x-8 lg:gap-x-12">
+
+      {/* Desktop nav — hidden below md. */}
+      <nav
+        aria-label="Primary"
+        className="hidden justify-center gap-x-8 md:flex lg:gap-x-12"
+      >
         {navItems.map((item) => {
           const active =
             item.href === "/"
@@ -64,7 +78,16 @@ export function Header({ onDark = false, current = "" }: HeaderProps) {
           );
         })}
       </nav>
-      <Stamp onDark={onDark} />
+
+      {/* Desktop stamp — hidden below md so we don't compete with the hamburger. */}
+      <div className="hidden md:block">
+        <Stamp onDark={onDark} />
+      </div>
+
+      {/* Mobile-only menu trigger and drawer. */}
+      <div className="md:hidden">
+        <MobileMenu items={navItems} onDark={onDark} />
+      </div>
     </header>
   );
 }

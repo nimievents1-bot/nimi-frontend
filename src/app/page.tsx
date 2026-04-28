@@ -90,7 +90,7 @@ export default async function HomePage() {
       </div>
 
       <main>
-        <section className="bg-cream-50 px-page-gutter py-24">
+        <section className="bg-cream-50 px-page-gutter py-section-y">
           <div className="mx-auto max-w-page">
             <p className="eyebrow mb-3">What we do</p>
             <h2 className="m-0 mb-8 max-w-3xl font-display text-4xl font-medium text-maroon-600">
@@ -104,7 +104,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="bg-cream-100 px-page-gutter py-24">
+        <section className="bg-cream-100 px-page-gutter py-section-y">
           <div className="mx-auto grid max-w-page gap-10 md:grid-cols-[1.2fr_1fr] md:items-center">
             <div>
               <p className="eyebrow mb-3">Pastry Cravings</p>
@@ -129,7 +129,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="bg-cream-50 px-page-gutter py-24">
+        <section className="bg-cream-50 px-page-gutter py-section-y">
           <div className="mx-auto max-w-page">
             <Testimonial
               quote="Nimi catered our 200-guest wedding and the kitchen ran like a metronome. Two months on, our families are still talking about the puff-puff and pepper-soup station."
@@ -138,7 +138,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="bg-cream-50 px-page-gutter py-24">
+        <section className="bg-cream-50 px-page-gutter py-section-y">
           <div className="mx-auto max-w-page">
             <p className="eyebrow mb-3">FAQ</p>
             <h2 className="m-0 mb-8 font-display text-4xl font-medium text-maroon-600">

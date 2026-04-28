@@ -29,7 +29,15 @@ const config: Config = {
         page: "1240px",
       },
       spacing: {
-        "page-gutter": "24px",
+        // Both consume CSS variables defined in globals.css → automatically
+        // mobile-aware. `px-page-gutter` and `py-section-y` propagate the
+        // responsive change site-wide without per-page edits.
+        "page-gutter": "var(--page-gutter)",
+        "section-y": "var(--section-y)",
+      },
+      minHeight: {
+        "hero-tall": "var(--hero-min-h-tall)",
+        "hero-short": "var(--hero-min-h-short)",
       },
     },
   },

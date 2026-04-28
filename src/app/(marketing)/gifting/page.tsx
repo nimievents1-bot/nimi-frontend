@@ -110,7 +110,7 @@ export default async function GiftingPage() {
         title="Made-to-order, made for the moment."
         lede="Curated collections across corporate, weddings and private events. Six to ten weeks lead time."
       />
-      <section className="px-page-gutter py-24">
+      <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
           <div className="mb-10 flex flex-wrap items-center gap-3">
             <Tag variant="orange">Lead time 6–10 wks</Tag>

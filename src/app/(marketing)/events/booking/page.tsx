@@ -18,7 +18,7 @@ export default function EventsBookingPage() {
         title="Book a consultation."
         lede="Thirty minutes, focused on your event. We'll come back with a concept and a quote."
       />
-      <section className="px-page-gutter py-20">
+      <section className="px-page-gutter section-tight">
         <div className="mx-auto max-w-2xl">
           <p className="font-sans text-base text-neutral-700">
             Pick two preferred dates and times. We&rsquo;ll confirm one or suggest the closest

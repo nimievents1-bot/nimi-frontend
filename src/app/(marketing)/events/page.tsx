@@ -53,7 +53,7 @@ export default function EventsPage() {
         lede="Three packages, one standard."
         imageUrl={images.hero.events}
       />
-      <section className="px-page-gutter py-24">
+      <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
           <p className="eyebrow mb-3">About our planning</p>
           <h2 className="m-0 mb-4 max-w-3xl font-display text-4xl font-medium text-maroon-600">

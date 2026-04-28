@@ -12,6 +12,27 @@
 @layer base {
   :root {
     color-scheme: light;
+
+    /* ----------------------------------------------------------
+       Responsive layout tokens.
+       Tailwind's `px-page-gutter` and `py-section-y` consume these
+       via tailwind.config.ts, so every page gets responsive padding
+       without touching individual files.
+       ---------------------------------------------------------- */
+    --page-gutter: 1.25rem;     /* 20px on mobile */
+    --section-y: 3.5rem;        /* 56px between sections on mobile */
+    --hero-min-h-tall: 420px;
+    --hero-min-h-short: 260px;
+  }
+
+  /* Tablet+ — bump the gutter and the section rhythm. */
+  @media (min-width: 768px) {
+    :root {
+      --page-gutter: 1.5rem;    /* 24px */
+      --section-y: 6rem;        /* 96px */
+      --hero-min-h-tall: 540px;
+      --hero-min-h-short: 340px;
+    }
   }
 
   html {
@@ -22,10 +43,13 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Avoid horizontal scroll from any single overflowing child. */
+    overflow-x: hidden;
   }
 
   body {
     @apply min-h-screen;
+    overflow-x: hidden;
   }
 
   /* Default focus ring across the app — orange, offset 3px, never removed. */
@@ -48,6 +72,13 @@
     color: theme("colors.maroon.600");
     font-weight: 500;
     letter-spacing: -0.005em;
+  }
+
+  /* Mobile: forms — keep input font-size at 16px+ so iOS doesn't zoom on focus. */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
   }
 
   /* Honour reduced motion — cap durations, drop translations. */
@@ -73,5 +104,27 @@
   /* Stamp — the persistent italic-serif corner CTA, à la Mel's "Get in Touch". */
   .stamp {
     @apply inline-flex flex-col items-start bg-maroon-700 px-[18px] py-[14px] font-display italic leading-[1.05] text-cream-50;
+  }
+
+  /* Section helpers — responsive vertical rhythm.
+     Use `.section` on outer <section> elements; combine with px-page-gutter. */
+  .section {
+    padding-top: var(--section-y);
+    padding-bottom: var(--section-y);
+  }
+  .section-tight {
+    padding-top: calc(var(--section-y) * 0.65);
+    padding-bottom: calc(var(--section-y) * 0.65);
+  }
+
+  /* Display-headline clamps for hero/H1 — already used inline in Hero,
+     exposed as utility so we can apply consistently elsewhere. */
+  .h-display {
+    font-size: clamp(2.25rem, 5.5vw, 4.5rem);
+    line-height: 1.08;
+  }
+  .h-section {
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    line-height: 1.15;
   }
 }

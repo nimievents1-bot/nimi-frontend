@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         lede="The short version: we collect what we need, we keep it secure, and we don't sell it."
         imageUrl={images.hero.privacy}
       />
-      <section className="px-page-gutter py-20">
+      <section className="px-page-gutter section-tight">
         <article className="prose prose-stone mx-auto max-w-prose font-sans text-base leading-relaxed text-neutral-800">
           <p className="font-display text-xl italic text-neutral-700">
             Last updated — placeholder. The final policy is provided by legal counsel before launch.

@@ -18,7 +18,7 @@ export default function AboutPage() {
         lede="Born from a stovetop, run like a hotel."
         imageUrl={images.hero.about}
       />
-      <section className="px-page-gutter py-24">
+      <section className="px-page-gutter py-section-y">
         <div className="mx-auto grid max-w-page gap-12 md:grid-cols-[1fr_1.2fr]">
           <div
             role="img"

@@ -70,7 +70,7 @@ export default async function CravingsPage() {
         lede="Set a budget. Build credit. Redeem when the moment is right."
         imageUrl={images.hero.cravings}
       />
-      <section className="px-page-gutter py-24">
+      <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
           <p className="eyebrow mb-3">How it works</p>
           <h2 className="m-0 mb-4 max-w-3xl font-display text-4xl font-medium text-maroon-600">

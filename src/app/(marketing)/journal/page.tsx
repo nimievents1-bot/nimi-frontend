@@ -50,7 +50,7 @@ export default async function JournalPage() {
         lede="Recipes, behind-the-scenes, gifting tips and the odd opinion."
         imageUrl={images.hero.journal}
       />
-      <section className="px-page-gutter py-20">
+      <section className="px-page-gutter section-tight">
         <div className="mx-auto max-w-page">
           {data.rows.length === 0 ? (
             <div className="border border-dashed border-cream-200 bg-paper p-10 text-center">
