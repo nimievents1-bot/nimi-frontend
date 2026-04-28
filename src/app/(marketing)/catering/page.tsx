@@ -12,7 +12,14 @@ export const metadata: Metadata = {
     "Three catering packages — Basic, Premium and Platinum — for weddings, corporate events and intimate gatherings.",
 };
 
-const tiers = [
+const tiers: Array<{
+  eyebrow: string;
+  title: string;
+  description: string;
+  price: string;
+  flagship?: boolean;
+  mediaStyle: ReturnType<typeof heroBackground>;
+}> = [
   {
     eyebrow: "Tier I",
     title: "Basic",
@@ -38,7 +45,7 @@ const tiers = [
     flagship: true,
     mediaStyle: heroBackground(images.catering.platinum),
   },
-] as const;
+];
 
 export default function CateringPage() {
   return (

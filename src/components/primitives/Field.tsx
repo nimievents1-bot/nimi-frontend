@@ -37,7 +37,9 @@ const baseInput = [
   "aria-[invalid=true]:border-semantic-danger",
 ].join(" ");
 
-interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "className">, BaseFieldProps {}
+interface InputProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "required">,
+    BaseFieldProps {}
 
 export const TextField = forwardRef<HTMLInputElement, InputProps>(function TextField(
   { label, required, hint, error, hideLabel, className, ...rest },
@@ -84,7 +86,7 @@ export const TextField = forwardRef<HTMLInputElement, InputProps>(function TextF
 });
 
 interface TextareaProps
-  extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "className">,
+  extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "className" | "required">,
     BaseFieldProps {}
 
 export const TextareaField = forwardRef<HTMLTextAreaElement, TextareaProps>(function TextareaField(
@@ -133,7 +135,7 @@ export const TextareaField = forwardRef<HTMLTextAreaElement, TextareaProps>(func
 });
 
 interface SelectProps
-  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "className">,
+  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "required">,
     BaseFieldProps {}
 
 export const SelectField = forwardRef<HTMLSelectElement, SelectProps>(function SelectField(

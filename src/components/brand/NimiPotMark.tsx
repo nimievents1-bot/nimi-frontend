@@ -6,7 +6,11 @@ import { type SVGProps } from "react";
  *
  * Use the <Wordmark> component below for the full lockup; this is just the mark.
  */
-export function NimiPotMark({ title = "Nimi Events", ...rest }: SVGProps<SVGSVGElement>) {
+interface NimiPotMarkProps extends SVGProps<SVGSVGElement> {
+  title?: string;
+}
+
+export function NimiPotMark({ title = "Nimi Events", ...rest }: NimiPotMarkProps) {
   return (
     <svg
       role="img"

@@ -19,8 +19,8 @@ const Schema = z.object({
 type FormValues = z.infer<typeof Schema>;
 
 interface LoginFormProps {
-  next?: string;
-  status?: string;
+  next?: string | undefined;
+  status?: string | undefined;
 }
 
 export function LoginForm({ next, status }: LoginFormProps) {

@@ -1,4 +1,5 @@
 import { type Metadata } from "next";
+import { Suspense } from "react";
 
 import { AuthShell } from "@/components/auth/AuthShell";
 
@@ -25,7 +26,9 @@ export default function LoginPage({
         href: "/signup",
       }}
     >
-      <LoginForm next={searchParams.next} status={searchParams.status} />
+      <Suspense fallback={null}>
+        <LoginForm next={searchParams.next} status={searchParams.status} />
+      </Suspense>
     </AuthShell>
   );
 }

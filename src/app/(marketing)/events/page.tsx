@@ -12,7 +12,13 @@ export const metadata: Metadata = {
     "Three packages — Basic, Premium and Platinum — covering full event planning, day-of coordination and styling.",
 };
 
-const tiers = [
+const tiers: Array<{
+  eyebrow: string;
+  title: string;
+  description: string;
+  flagship?: boolean;
+  mediaStyle: ReturnType<typeof heroBackground>;
+}> = [
   {
     eyebrow: "Tier I",
     title: "Basic",
@@ -35,7 +41,7 @@ const tiers = [
     flagship: true,
     mediaStyle: heroBackground(images.events.platinum),
   },
-] as const;
+];
 
 export default function EventsPage() {
   return (

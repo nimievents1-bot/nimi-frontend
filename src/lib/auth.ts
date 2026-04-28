@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { apiFetch } from "./api";
 
@@ -40,9 +41,6 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
 export async function requireSessionUser(): Promise<SessionUser> {
   const user = await getSessionUser();
-  if (!user) {
-    const { redirect } = await import("next/navigation");
-    redirect("/login");
-  }
-  return user;
+  if (user) return user;
+  redirect("/login");
 }
