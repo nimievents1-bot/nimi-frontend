@@ -15,7 +15,7 @@ export const config = {
 
 const ACCESS_COOKIE = "nimi_at";
 
-export function middleware(req: NextRequest): NextResponse {
+export function proxy(req: NextRequest): NextResponse {
   const hasAccess = req.cookies.has(ACCESS_COOKIE);
   if (!hasAccess) {
     const url = req.nextUrl.clone();

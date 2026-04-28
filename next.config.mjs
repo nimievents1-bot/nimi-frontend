@@ -34,8 +34,8 @@ const config = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   compress: true,
+  typedRoutes: true,
   experimental: {
-    typedRoutes: true,
     optimizePackageImports: ["lucide-react"],
   },
   images: {
