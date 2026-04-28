@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { type ReactNode, useEffect, useId, useState } from "react";
 
 import { Stamp } from "@/components/primitives/Stamp";
 import { cn } from "@/lib/cn";
@@ -16,21 +16,34 @@ interface Props {
   items: ReadonlyArray<NavItem>;
   /** Render the trigger in light tone (over dark hero photography). */
   onDark?: boolean;
+  /**
+   * Render the brand "Get in Touch" stamp at the bottom of the drawer.
+   * Default true (marketing). Set false for admin / account layouts.
+   */
+  showStamp?: boolean;
+  /** Optional footer slot rendered below items (e.g. logout, user info). */
+  footer?: ReactNode;
 }
 
 /**
  * Mobile menu — hamburger trigger plus a slide-down drawer.
  *
  * Behaviour:
- *   - Visible only below the `md` breakpoint (768px).
+ *   - Visible only below the `md` breakpoint (768px) by default. The admin
+ *     layout shows it up to `lg`, controlled by the parent's responsive
+ *     visibility classes — this component itself is breakpoint-agnostic.
  *   - Trap-free; closes on Escape, on overlay click, and on route change.
- *   - Hides body scroll while open (small page-content shift is OK; full
- *     `position: fixed` body trick fights iOS).
+ *   - Hides body scroll while open.
  *
  * Styling intentionally matches the brand idiom: cream surface, italic-serif
- * stamp at the bottom, generous tap targets for mobile.
+ * stamp at the bottom (when enabled), generous tap targets for mobile.
  */
-export function MobileMenu({ items, onDark = false }: Props) {
+export function MobileMenu({
+  items,
+  onDark = false,
+  showStamp = true,
+  footer,
+}: Props) {
   const [open, setOpen] = useState(false);
   const drawerId = useId();
   const pathname = usePathname();
@@ -64,7 +77,7 @@ export function MobileMenu({ items, onDark = false }: Props) {
         aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "inline-flex h-11 w-11 items-center justify-center md:hidden",
+          "inline-flex h-11 w-11 items-center justify-center",
           "border border-transparent transition-colors duration-fast",
           onDark
             ? "text-cream-50 hover:border-cream-200/30"
@@ -88,7 +101,7 @@ export function MobileMenu({ items, onDark = false }: Props) {
             x2="19"
             y2={open ? "11" : "7"}
             transform={open ? "rotate(45 11 11)" : undefined}
-            style={{ transition: "transform 220ms cubic-bezier(.2,.7,.3,1), y1 220ms, y2 220ms" }}
+            style={{ transition: "transform 220ms cubic-bezier(.2,.7,.3,1)" }}
           />
           <line
             x1="3"
@@ -96,7 +109,7 @@ export function MobileMenu({ items, onDark = false }: Props) {
             x2="19"
             y2={open ? "11" : "15"}
             transform={open ? "rotate(-45 11 11)" : undefined}
-            style={{ transition: "transform 220ms cubic-bezier(.2,.7,.3,1), y1 220ms, y2 220ms" }}
+            style={{ transition: "transform 220ms cubic-bezier(.2,.7,.3,1)" }}
           />
         </svg>
       </button>
@@ -104,7 +117,7 @@ export function MobileMenu({ items, onDark = false }: Props) {
       {/* Overlay + drawer. Only rendered when open so unused DOM stays light. */}
       {open ? (
         <div
-          className="fixed inset-0 z-[60] md:hidden"
+          className="fixed inset-0 z-[60]"
           aria-modal="true"
           role="dialog"
           aria-label="Site menu"
@@ -147,9 +160,13 @@ export function MobileMenu({ items, onDark = false }: Props) {
               })}
             </ul>
 
-            <div className="mt-8">
-              <Stamp />
-            </div>
+            {showStamp ? (
+              <div className="mt-8">
+                <Stamp />
+              </div>
+            ) : null}
+
+            {footer ? <div className="mt-6">{footer}</div> : null}
           </nav>
         </div>
       ) : null}
