@@ -32,14 +32,21 @@ export default function AboutPage() {
               Cooking has always been our way of holding people.
             </h2>
             <p className="mb-4 font-sans text-base leading-relaxed text-neutral-800">
-              Nimi began at home, with a kitchen that always seemed to expand to fit one more chair.
-              Over the years what was a Sunday ritual became a small business, and then a team, and
-              then a calendar full of weddings, corporate days and quiet birthdays.
+              Nimi began at a family table, in a kitchen that always seemed to expand to fit one
+              more chair. The smell of jollof simmering on a Sunday afternoon, the laughter that
+              followed plates being passed around — that's where this story starts. Authentically
+              African flavours, served the way they were meant to be: with care, with intent, with
+              love.
             </p>
             <p className="mb-4 font-sans text-base leading-relaxed text-neutral-800">
-              The standard hasn’t moved. We cook real food, we serve it with care, and we treat the
-              event like our own. Whether you’re ordering a single gift box or planning a wedding
-              for two hundred guests, you’ll get the same answer when you call: what do you need?
+              What was a Sunday ritual became a small business, and then a team, and then a calendar
+              of weddings, corporate days and quiet birthdays across the UK. Through every shift,
+              the standard hasn't moved. We cook real food, we serve it with care, and we treat
+              every event like our own.
+            </p>
+            <p className="mb-4 font-sans text-base leading-relaxed text-neutral-800">
+              Whether you're ordering a single gift box or planning a wedding for two hundred
+              guests, you'll get the same answer when you call: <em>what do you need?</em>
             </p>
           </div>
         </div>

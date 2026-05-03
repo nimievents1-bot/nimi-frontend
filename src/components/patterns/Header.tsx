@@ -18,7 +18,7 @@ const navItems = [
   { label: "Catering", href: "/catering" },
   { label: "Events", href: "/events" },
   { label: "Gifting", href: "/gifting" },
-  { label: "Cravings", href: "/cravings" },
+  { label: "Indulgence", href: "/cravings" },
   { label: "Journal", href: "/journal" },
   { label: "FAQ", href: "/faq" },
 ] as const;

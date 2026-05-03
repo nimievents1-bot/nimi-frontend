@@ -48,6 +48,13 @@ const ClientSchema = z.object({
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
   NEXT_PUBLIC_PLAUSIBLE_DOMAIN: z.string().optional(),
+
+  /** Cal.com username (the slug you pick when signing up — e.g. "nimi-events"). */
+  NEXT_PUBLIC_CAL_USERNAME: z.string().optional(),
+  /** Cal.com event type slug for the 30-minute paid consultation. */
+  NEXT_PUBLIC_CAL_EVENT_30: z.string().default("30min"),
+  /** Cal.com event type slug for the 60-minute paid consultation. */
+  NEXT_PUBLIC_CAL_EVENT_60: z.string().default("60min"),
 });
 
 export type ServerEnv = z.infer<typeof ServerSchema>;
@@ -97,6 +104,9 @@ function resolveClientValues() {
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_PLAUSIBLE_DOMAIN: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN,
+    NEXT_PUBLIC_CAL_USERNAME: process.env.NEXT_PUBLIC_CAL_USERNAME,
+    NEXT_PUBLIC_CAL_EVENT_30: process.env.NEXT_PUBLIC_CAL_EVENT_30,
+    NEXT_PUBLIC_CAL_EVENT_60: process.env.NEXT_PUBLIC_CAL_EVENT_60,
   };
 }
 

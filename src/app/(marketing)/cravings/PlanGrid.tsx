@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Card } from "@/components/patterns/Card";
 import { Alert } from "@/components/primitives/Alert";
 import { Button } from "@/components/primitives/Button";
+import { Tag } from "@/components/primitives/Tag";
 import { ApiError, apiFetch } from "@/lib/api";
 import { heroBackground, images } from "@/lib/images";
 
@@ -25,10 +26,10 @@ interface Props {
 }
 
 /**
- * PlanGrid — three plan cards. Clicking "Subscribe" calls the API which
- * returns a Stripe Checkout URL we redirect to. If the user isn't logged
- * in, we redirect to /login with a `next=/cravings` so they come back here
- * after authenticating.
+ * PlanGrid — three plan cards rendered on the Indulgence Club page.
+ * Clicking "Join" calls the API which returns a Stripe Checkout URL we
+ * redirect to. If the user isn't logged in we send them to /login with a
+ * `next=/cravings` callback so they come back to the same page after auth.
  */
 export function PlanGrid({ plans }: Props) {
   const router = useRouter();
@@ -72,19 +73,23 @@ export function PlanGrid({ plans }: Props) {
           return (
             <Card
               key={p.slug}
-              eyebrow={flagship ? "Most popular" : "Cravings"}
+              eyebrow={flagship ? "Most popular" : `Tier ${i + 1}`}
               title={fmt.format(p.monthlyAmountMinor / 100) + " / month"}
               description={p.description ?? p.name}
               {...(flagship ? { flagship: true } : {})}
               mediaStyle={heroBackground(PLAN_IMAGES[i] ?? images.cravings.medium)}
             >
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Tag>3-mo minimum</Tag>
+                <Tag>Credits valid 3 mo</Tag>
+              </div>
               <Button
                 variant={flagship ? "primary" : "secondary"}
                 size="sm"
                 onClick={() => void subscribe(p.slug)}
                 disabled={pending !== null}
               >
-                {pending === p.slug ? "Redirecting…" : "Subscribe"}
+                {pending === p.slug ? "Redirecting…" : "Join the club"}
               </Button>
             </Card>
           );

@@ -28,9 +28,9 @@ export default function PrivacyPage() {
           </h2>
           <p>
             Account details (name, email, phone), enquiry contents, booking details, and order
-            history. If you subscribe to Pastry Cravings, we also store the subscription state and
-            credit ledger entries. Payment information is processed by Stripe and never stored by
-            us.
+            history. If you join The Nimi Indulgence Club, we also store the subscription state
+            and Indulgence Credits ledger entries. Payment information is processed by Stripe and
+            never stored by us.
           </p>
           <h2 className="mt-10 font-display text-3xl font-medium text-maroon-600">
             How we use it

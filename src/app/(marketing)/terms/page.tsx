@@ -30,14 +30,27 @@ export default function TermsPage() {
           </p>
           <h2 className="mt-10 font-display text-3xl font-medium text-maroon-600">Gifting</h2>
           <p>
-            Gift orders are bespoke and produced once final designs are approved. Lead time is six
-            to ten weeks. Cancellations after design approval may be subject to a fee.
+            Gift orders are bespoke and produced once final designs are approved. Production time
+            is six to twelve weeks depending on complexity. Cancellations after design approval
+            may be subject to a fee.
           </p>
-          <h2 className="mt-10 font-display text-3xl font-medium text-maroon-600">Subscriptions</h2>
+          <h2 className="mt-10 font-display text-3xl font-medium text-maroon-600">
+            The Nimi Indulgence Club
+          </h2>
           <p>
-            Pastry Cravings subscriptions are monthly recurring. Pause or cancel at any time via
-            your account. Credit balances accrue up to a £1,000 cap and remain redeemable for 12
-            months after cancellation.
+            Indulgence Club subscriptions are monthly recurring with a three-month minimum
+            commitment. After the minimum term, you can cancel at any time via your account;
+            cancellation stops future billing only and does not refund credits already issued.
+          </p>
+          <p>
+            Each month&rsquo;s Indulgence Credits are valid for three months from issue. Credits
+            are prepaid value and are not refundable, transferable, or redeemable for cash. The
+            minimum pastry order is £25. Credit balances accrue up to a £1,000 rolling cap.
+          </p>
+          <p>
+            Surprise pastries, bonus drops, and birthday gestures are occasional perks, not
+            guaranteed entitlements. Priority access to limited drops is the principal value of
+            membership.
           </p>
         </article>
       </section>

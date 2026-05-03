@@ -19,17 +19,17 @@ const groups: ReadonlyArray<{
       {
         question: "How far in advance should I book?",
         answer:
-          "For larger events we recommend six to twelve months. Smaller events can usually be served at a minimum of three months’ notice; rush windows depend on the calendar.",
+          "Larger events: three to six months' notice. Smaller events: a maximum of three months. Rush windows depend on the calendar.",
       },
       {
-        question: "Do you cater outside London?",
+        question: "Where are you based and do you travel?",
         answer:
-          "Yes — UK-wide for events of all sizes. Travel and accommodation are budgeted at quote stage.",
+          "We're based in Bradford / Leeds and cater across the UK. Travel is available with additional charges, agreed at quote stage.",
       },
       {
-        question: "How does the catering booking process work?",
+        question: "How does the booking process work?",
         answer:
-          "Submit an enquiry through the Catering page; we reply within one working day, schedule a consultation, agree on a menu, and confirm with a deposit.",
+          "Submit an enquiry or book a paid consultation. We respond within one working day, send a concept and quote after the consultation, then confirm with a deposit when you're ready to proceed.",
       },
     ],
   },
@@ -39,7 +39,7 @@ const groups: ReadonlyArray<{
       {
         question: "How long does a gift box take to make?",
         answer:
-          "Six to ten weeks (approximately two to three months) depending on quantity and customisation level. Early booking is strongly recommended.",
+          "Production time is six to twelve weeks depending on complexity. All items are custom and made to order, so early booking is strongly recommended.",
       },
       {
         question: "Can I add my logo and colours?",
@@ -54,17 +54,22 @@ const groups: ReadonlyArray<{
     ],
   },
   {
-    heading: "Pastry Cravings (subscription)",
+    heading: "The Nimi Indulgence Club",
     items: [
       {
         question: "How does the credit system work?",
         answer:
-          "Pick a plan (£25, £50, £100 or custom) and that amount is added to your Cravings credit balance every month. Use it on pastry orders any time. Unused credit rolls over up to a £1,000 cap.",
+          "Set a monthly amount; it becomes Indulgence Credits each month, valid for two to three months from issue. Use credits on pastry orders any time within their validity period. Minimum order on pastry orders is £25.",
       },
       {
-        question: "Can I pause or cancel my subscription?",
+        question: "What's the minimum commitment?",
         answer:
-          "Yes. Pause for up to three months at a time from your account; cancel any time via the Stripe Customer Portal. Remaining credit stays for 12 months after cancellation.",
+          "Three months. After that the subscription continues until you cancel from your account; cancellation stops future billing but does not refund credits already issued.",
+      },
+      {
+        question: "Are credits refundable?",
+        answer:
+          "No. Credits are prepaid value, not cashback or cash equivalent. Surprises and bonus drops are occasional perks, not guaranteed value. Priority access to limited drops is the main value driver.",
       },
     ],
   },

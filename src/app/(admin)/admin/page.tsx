@@ -25,7 +25,7 @@ const QUICK_LINKS = [
   { label: "Open enquiries", href: "/admin/enquiries?status=NEW" },
   { label: "Pending design approval", href: "/admin/orders?status=AWAITING_DESIGN_APPROVAL" },
   { label: "All gift orders", href: "/admin/orders" },
-  { label: "Cravings subscribers", href: "/admin/cravings" },
+  { label: "Indulgence Club subscribers", href: "/admin/cravings" },
   { label: "Edit content", href: "/admin/content" },
   { label: "Write a journal post", href: "/admin/blog/new" },
 ] as const;

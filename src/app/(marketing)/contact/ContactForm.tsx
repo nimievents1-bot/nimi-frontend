@@ -93,7 +93,7 @@ export function ContactForm() {
         <option value="CATERING">Catering</option>
         <option value="EVENTS">Event planning / coordination</option>
         <option value="GIFTING">Gifting</option>
-        <option value="CRAVINGS">Pastry Cravings</option>
+        <option value="CRAVINGS">The Indulgence Club</option>
         <option value="PRESS">Press</option>
       </SelectField>
 

@@ -5,7 +5,7 @@ import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 
 export const metadata: Metadata = {
-  title: "Admin · Cravings subscribers",
+  title: "Admin · Indulgence Club subscribers",
   robots: { index: false, follow: false },
 };
 
@@ -56,9 +56,9 @@ export default async function AdminCravingsPage() {
 
   return (
     <>
-      <p className="eyebrow mb-2">Admin · Cravings</p>
+      <p className="eyebrow mb-2">Admin · Indulgence Club</p>
       <h1 className="m-0 mb-3 font-display text-5xl font-medium text-maroon-600">
-        Cravings subscribers
+        Indulgence Club subscribers
       </h1>
       <p className="mb-8 max-w-prose font-sans text-base text-neutral-700">
         Stripe is the source of truth for subscription state. This list mirrors the latest webhook

@@ -15,6 +15,9 @@ import {
 import { Turnstile } from "@/components/primitives/Turnstile";
 import { ApiError, apiFetch } from "@/lib/api";
 
+/** Public type so the page can narrow `searchParams.tier` to a known slug. */
+export type ServiceStyleSlug = "buffet" | "family-style" | "plated";
+
 /**
  * Catering enquiry form — POSTs to the same /contact endpoint as the
  * generic form, but with `kind: "CATERING"` and richer fields populated.
@@ -26,6 +29,9 @@ const Schema = z.object({
   name: z.string().min(2, "Please enter your name.").max(120),
   email: z.string().email("Please enter a valid email address."),
   phone: z.string().min(6, "Please enter a contactable phone number.").max(32),
+  serviceStyle: z.enum(["buffet", "family-style", "plated", "tbd"], {
+    errorMap: () => ({ message: "Please choose a service style." }),
+  }),
   eventDate: z
     .string()
     .min(1, "Please pick an event date.")
@@ -50,18 +56,43 @@ const Schema = z.object({
   website: z.string().max(0).optional().or(z.literal("")),
 });
 
+/** Stable slug → human label mapping, used in admin enquiries summaries. */
+const SERVICE_STYLE_LABEL: Record<"buffet" | "family-style" | "plated" | "tbd", string> = {
+  buffet: "Tier 1 — Buffet Service",
+  "family-style": "Tier 2 — Family Style Service",
+  plated: "Tier 3 — Plated Service",
+  tbd: "Not yet decided",
+};
+
 type FormValues = z.infer<typeof Schema>;
 
-export function CateringBookingForm() {
+interface CateringBookingFormProps {
+  /**
+   * If the user arrived from a tier card on `/catering`, the slug comes through
+   * `?tier=...`. The page narrows it before passing it down. When set, the
+   * dropdown is replaced with a confirmation row + a "change" button so the
+   * user is never asked to pick the same thing twice.
+   */
+  initialTier?: ServiceStyleSlug;
+}
+
+export function CateringBookingForm({ initialTier }: CateringBookingFormProps = {}) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [token, setToken] = useState("");
+  // `tierLocked` mirrors the prop on first render but flips to `false` if the
+  // user clicks "Change". Once unlocked we surface the regular dropdown so the
+  // user can pick a different style without leaving the page.
+  const [tierLocked, setTierLocked] = useState<boolean>(Boolean(initialTier));
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(Schema) });
+  } = useForm<FormValues>({
+    resolver: zodResolver(Schema),
+    defaultValues: initialTier ? { serviceStyle: initialTier } : undefined,
+  });
 
   const submit = handleSubmit(async (values) => {
     setServerError(null);
@@ -69,6 +100,12 @@ export function CateringBookingForm() {
       setServerError("Please complete the bot-protection challenge before sending.");
       return;
     }
+    // Prepend a structured single-line tier marker to the notes so admins
+    // can read the chosen service style at a glance without reaching into
+    // a separate column on the enquiry. The plain `eventType` field stays
+    // dedicated to the event-type taxonomy (wedding/corporate/etc.).
+    const tieredNotes = `Service style: ${SERVICE_STYLE_LABEL[values.serviceStyle]}\n\n${values.notes}`;
+
     try {
       await apiFetch("/contact", {
         method: "POST",
@@ -82,8 +119,8 @@ export function CateringBookingForm() {
           ...(values.guestCount !== undefined ? { guestCount: values.guestCount } : {}),
           ...(values.budgetBand ? { budgetBand: values.budgetBand } : {}),
           ...(values.dietary ? { dietary: values.dietary } : {}),
-          notes: values.notes,
-          source: "catering-booking",
+          notes: tieredNotes,
+          source: `catering-booking:${values.serviceStyle}`,
           turnstileToken: token,
         },
       });
@@ -130,6 +167,44 @@ export function CateringBookingForm() {
         error={errors.phone?.message}
         {...register("phone")}
       />
+
+      {tierLocked && initialTier ? (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-cream-200 bg-cream-100 px-4 py-3">
+          <div>
+            <p className="m-0 font-sans text-xs uppercase tracking-[0.2em] text-maroon-700">
+              Service style
+            </p>
+            <p className="m-0 font-display text-lg font-medium text-maroon-700">
+              {SERVICE_STYLE_LABEL[initialTier]}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setTierLocked(false)}
+          >
+            Change
+          </Button>
+          {/* Hidden input keeps the value in the form even though the dropdown
+              is replaced by the read-only confirmation row above. */}
+          <input type="hidden" value={initialTier} {...register("serviceStyle")} />
+        </div>
+      ) : (
+        <SelectField
+          label="Service style"
+          required
+          hint="Choose your preferred catering style — you can change this on the call."
+          error={errors.serviceStyle?.message}
+          {...register("serviceStyle")}
+        >
+          <option value="">Choose…</option>
+          <option value="buffet">Tier 1 — Buffet Service</option>
+          <option value="family-style">Tier 2 — Family Style Service</option>
+          <option value="plated">Tier 3 — Plated Service</option>
+          <option value="tbd">Not sure yet</option>
+        </SelectField>
+      )}
 
       <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
         <TextField

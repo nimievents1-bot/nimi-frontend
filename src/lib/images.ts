@@ -50,25 +50,34 @@ export const images = {
     cookies: unsplash("1556910103-1c02745aae4d", { w: 1800, q: 80 }),
   },
 
-  /** Three service cards on the homepage. 4:3 aspect ratio. */
+  /** Service cards on the homepage. 4:3 aspect ratio. */
   services: {
     catering: unsplash("1414235077428-338989a2e8c0", { w: 1000, h: 750 }),
     events: unsplash("1519225421980-715cb0215aed", { w: 1000, h: 750 }),
     gifting: unsplash("1513885535751-8b9238bd345a", { w: 1000, h: 750 }),
+    content: unsplash("1518780664697-55e3ad937233", { w: 1000, h: 750 }),
   },
 
-  /** Catering tier cards. */
+  /** Event Content Creation page imagery. */
+  content: {
+    hero: unsplash("1518780664697-55e3ad937233", { w: 1800, q: 80 }),
+    photography: unsplash("1502920917128-1aa500764cbd", { w: 1000, h: 750 }),
+    videography: unsplash("1485846234645-a62644f84728", { w: 1000, h: 750 }),
+    delivery: unsplash("1496181133206-80ce9b88a853", { w: 1000, h: 750 }),
+  },
+
+  /** Catering tier cards: Buffet · Family-style · Plated. */
   catering: {
-    basic: unsplash("1546069901-ba9599a7e63c", { w: 1000, h: 750 }),
-    premium: unsplash("1414235077428-338989a2e8c0", { w: 1000, h: 750 }),
-    platinum: unsplash("1504674900247-0877df9cc836", { w: 1000, h: 750 }),
+    buffet: unsplash("1546069901-ba9599a7e63c", { w: 1000, h: 750 }),
+    familyStyle: unsplash("1414235077428-338989a2e8c0", { w: 1000, h: 750 }),
+    plated: unsplash("1504674900247-0877df9cc836", { w: 1000, h: 750 }),
   },
 
-  /** Event-planning tier cards. */
+  /** Event-planning tier cards: Coordination · Design + Coordination · Full production. */
   events: {
-    basic: unsplash("1519225421980-715cb0215aed", { w: 1000, h: 750 }),
-    premium: unsplash("1464366400600-7168b8af9bc3", { w: 1000, h: 750 }),
-    platinum: unsplash("1532712938310-34cb3982ef74", { w: 1000, h: 750 }),
+    coordination: unsplash("1519225421980-715cb0215aed", { w: 1000, h: 750 }),
+    design: unsplash("1464366400600-7168b8af9bc3", { w: 1000, h: 750 }),
+    production: unsplash("1532712938310-34cb3982ef74", { w: 1000, h: 750 }),
   },
 
   /** Gift collection placeholder photography (used when a collection has no imageUrl). */
@@ -83,12 +92,35 @@ export const images = {
     celebration: unsplash("1513885535751-8b9238bd345a", { w: 1000, h: 750 }),
   },
 
-  /** Pastry Cravings — pastry photography for the plan cards. */
+  /** The Indulgence Club — pastry photography for the plan cards. */
   cravings: {
     small: unsplash("1486427944299-d1955d23e34d", { w: 1000, h: 750 }),
     medium: unsplash("1509440159596-0249088772ff", { w: 1000, h: 750 }),
     large: unsplash("1558301211-0d8c8ddee6ec", { w: 1000, h: 750 }),
     teaser: unsplash("1486427944299-d1955d23e34d", { w: 1200, h: 960 }),
+  },
+
+  /**
+   * Indulgence Club pastry gallery — nine product photographs. These are
+   * STAND-IN images chosen to be visually plausible for the named pastry;
+   * REPLACE WITH REAL PRODUCT PHOTOGRAPHY before launch by uploading to
+   * R2 and swapping the URL. The keys are stable so swapping is a one-line
+   * change per item.
+   *
+   * Aspect ratio 1:1 — the gallery renders as a square grid for editorial
+   * uniformity. If a photo is non-square it'll be cover-cropped to the
+   * centre.
+   */
+  pastries: {
+    meatPie: unsplash("1626776877281-9a07dd4ff09a", { w: 800, h: 800 }),
+    chickenPie: unsplash("1568901346375-23c9450c58cd", { w: 800, h: 800 }),
+    eggRoll: unsplash("1599487488170-d11ec9c172f0", { w: 800, h: 800 }),
+    fishPie: unsplash("1565958011703-44f9829ba187", { w: 800, h: 800 }),
+    puffPuff: unsplash("1551024601-bec78aea704b", { w: 800, h: 800 }),
+    zobo: unsplash("1497534446932-c925b458314e", { w: 800, h: 800 }),
+    chickenShawarma: unsplash("1561651823-34b9bf67abf6", { w: 800, h: 800 }),
+    asunShawarma: unsplash("1529193591184-b1d58069ecdd", { w: 800, h: 800 }),
+    comboShawarma: unsplash("1593504049359-74330189a345", { w: 800, h: 800 }),
   },
 
   /** About-page founder portrait area. */

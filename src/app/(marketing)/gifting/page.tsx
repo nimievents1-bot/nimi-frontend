@@ -5,11 +5,12 @@ import { Card } from "@/components/patterns/Card";
 import { Hero } from "@/components/patterns/Hero";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
+import { images } from "@/lib/images";
 
 export const metadata: Metadata = {
   title: "Gifting",
   description:
-    "Made-to-order gift boxes for corporate events, weddings and private celebrations.",
+    "Made-to-order gift boxes for corporate events, weddings and private celebrations. Production time six to twelve weeks depending on complexity.",
 };
 
 interface Collection {
@@ -24,11 +25,34 @@ interface Collection {
   imageUrl: string | null;
 }
 
-const CATEGORY_GRADIENTS: Record<Collection["category"], string> = {
-  CORPORATE: "linear-gradient(135deg,#F4EDDA,#A89779)",
-  WEDDINGS: "linear-gradient(135deg,#F0CFC7,#A24632)",
-  PRIVATE: "linear-gradient(135deg,#ECA068,#5C1F18)",
+/**
+ * Per-slug fallback photography. Used when a Collection row has no
+ * `imageUrl` — keeps the gifting grid visually rich even before a founder
+ * has uploaded final product photography. REPLACE WITH REAL PHOTOS by
+ * setting `imageUrl` on the GiftCollection row in admin / Prisma Studio.
+ */
+const COLLECTION_FALLBACK_IMAGE: Record<string, string> = {
+  "essential-collection": images.gifting.essential,
+  "signature-collection": images.gifting.signature,
+  "executive-series": images.gifting.executive,
+  "heritage-collection": images.gifting.heritage,
+  "soft-luxe-box": images.gifting.softLuxe,
+  "classic-keepsake": images.gifting.classicKeepsake,
+  "luxe-collection": images.gifting.luxe,
+  "celebration-box": images.gifting.celebration,
 };
+
+/** Last-resort fallback by category — keeps unknown slugs visually on-brand. */
+const CATEGORY_FALLBACK_IMAGE: Record<Collection["category"], string> = {
+  CORPORATE: images.gifting.signature,
+  WEDDINGS: images.gifting.heritage,
+  PRIVATE: images.gifting.softLuxe,
+};
+
+function collectionImage(c: Collection): string {
+  if (c.imageUrl) return c.imageUrl;
+  return COLLECTION_FALLBACK_IMAGE[c.slug] ?? CATEGORY_FALLBACK_IMAGE[c.category];
+}
 
 const FALLBACK: Collection[] = [
   {
@@ -108,13 +132,13 @@ export default async function GiftingPage() {
         height="short"
         eyebrow="Gifting"
         title="Made-to-order, made for the moment."
-        lede="Curated collections across corporate, weddings and private events. Six to ten weeks lead time."
+        lede="Curated collections across corporate, weddings and private events. Production time is six to twelve weeks depending on complexity — every item is custom and made to order."
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
           <div className="mb-10 flex flex-wrap items-center gap-3">
-            <Tag variant="orange">Lead time 6–10 wks</Tag>
-            <Tag>Customisable</Tag>
+            <Tag variant="orange">Production 6–12 wks</Tag>
+            <Tag>Custom · made to order</Tag>
             <Tag variant="maroon">Brandable</Tag>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -124,15 +148,11 @@ export default async function GiftingPage() {
                   eyebrow={categoryLabel(c.category)}
                   title={c.name}
                   description={c.description}
-                  mediaStyle={
-                    c.imageUrl
-                      ? {
-                          backgroundImage: `url("${c.imageUrl}")`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }
-                      : { background: CATEGORY_GRADIENTS[c.category] }
-                  }
+                  mediaStyle={{
+                    backgroundImage: `url("${collectionImage(c)}")`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
                 >
                   <p className="mb-3 font-display text-lg font-semibold text-orange-700">
                     {priceLabel(c)}
@@ -144,6 +164,11 @@ export default async function GiftingPage() {
               </Link>
             ))}
           </div>
+
+          <p className="mt-10 max-w-prose font-sans text-xs italic text-neutral-500">
+            Photography shown is illustrative — final product photography lands shortly. Each
+            collection is fully customisable: names, dates, logos, and brand colours.
+          </p>
         </div>
       </section>
     </>

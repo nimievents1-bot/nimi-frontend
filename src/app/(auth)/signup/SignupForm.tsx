@@ -8,8 +8,24 @@ import { z } from "zod";
 
 import { Alert } from "@/components/primitives/Alert";
 import { Button } from "@/components/primitives/Button";
-import { TextField } from "@/components/primitives/Field";
+import { SelectField, TextField } from "@/components/primitives/Field";
 import { ApiError, apiFetch } from "@/lib/api";
+
+/** 12 month names for the optional birthday picker — display only. */
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
 
 /**
  * Mirrors the API's RegisterDto — keep in sync. The same regex enforces
@@ -27,6 +43,10 @@ const Schema = z
         "Password must be 12+ chars with lower, upper, number and a special character.",
     }),
     confirm: z.string(),
+    // Optional birthday — day + month only. Empty string means "not provided".
+    // The form treats half-set DOBs as "not provided" rather than failing.
+    birthDay: z.string().optional(),
+    birthMonth: z.string().optional(),
     acceptedTerms: z.literal(true, {
       errorMap: () => ({ message: "Please accept the terms to continue." }),
     }),
@@ -34,7 +54,20 @@ const Schema = z
   .refine((d) => d.password === d.confirm, {
     path: ["confirm"],
     message: "Passwords don't match.",
-  });
+  })
+  .refine(
+    (d) => {
+      // If either DOB field is set, both must be set. Half-DOB is rejected
+      // so the API never receives partial data it would silently drop.
+      const dayPresent = !!d.birthDay;
+      const monthPresent = !!d.birthMonth;
+      return dayPresent === monthPresent;
+    },
+    {
+      path: ["birthDay"],
+      message: "Please pick both day and month, or leave both blank.",
+    },
+  );
 
 type FormValues = z.infer<typeof Schema>;
 
@@ -50,6 +83,12 @@ export function SignupForm() {
 
   const submit = handleSubmit(async (values) => {
     setServerError(null);
+
+    // DOB ships only when both fields are set — the .refine() guarantees
+    // either both or neither, so a one-side check is sufficient here.
+    const birthDay = values.birthDay ? Number(values.birthDay) : undefined;
+    const birthMonth = values.birthMonth ? Number(values.birthMonth) : undefined;
+
     try {
       await apiFetch("/auth/register", {
         method: "POST",
@@ -58,6 +97,9 @@ export function SignupForm() {
           email: values.email,
           password: values.password,
           ...(values.phone ? { phone: values.phone } : {}),
+          ...(birthDay !== undefined && birthMonth !== undefined
+            ? { birthDay, birthMonth }
+            : {}),
         },
       });
       router.push("/account?status=welcome");
@@ -87,6 +129,42 @@ export function SignupForm() {
         {...register("email")}
       />
       <TextField label="Phone (optional)" type="tel" autoComplete="tel" error={errors.phone?.message} {...register("phone")} />
+
+      <fieldset className="mb-2">
+        <legend className="mb-1 font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
+          Birthday (optional)
+        </legend>
+        <p className="mb-2 font-sans text-xs text-neutral-500">
+          We&rsquo;ll send a small treat on your day. Day and month only — never the year.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <SelectField
+            label="Day"
+            error={errors.birthDay?.message}
+            {...register("birthDay")}
+          >
+            <option value="">—</option>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </SelectField>
+          <SelectField
+            label="Month"
+            error={errors.birthMonth?.message}
+            {...register("birthMonth")}
+          >
+            <option value="">—</option>
+            {MONTHS.map((m, idx) => (
+              <option key={m} value={idx + 1}>
+                {m}
+              </option>
+            ))}
+          </SelectField>
+        </div>
+      </fieldset>
+
       <TextField
         label="Password"
         type="password"

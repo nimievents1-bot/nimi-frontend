@@ -7,14 +7,34 @@ import { Button } from "@/components/primitives/Button";
 import { Turnstile } from "@/components/primitives/Turnstile";
 import { ApiError, apiFetch } from "@/lib/api";
 
+interface NewsletterFormProps {
+  /** Identifier for analytics — which surface the user subscribed from. */
+  source?: string;
+  /** Override the default helper line shown beneath the submit button. */
+  helperText?: string;
+  /** Override the success alert content (defaults to a generic confirmation note). */
+  successMessage?: string;
+  /** Optional extra Tailwind classes for the wrapping form. */
+  className?: string;
+}
+
 /**
- * Newsletter sign-up — client component embedded in the Footer.
+ * Newsletter sign-up — client component reused in the Footer and the
+ * homepage subscription panel.
  *
  * Subscribes via the API; the API responds 202 even if the email already
  * exists (anti-enumeration), so the success message is the same in
  * every case. The user receives a confirmation email regardless.
+ *
+ * `source` is forwarded as analytics metadata so we can later see which
+ * surfaces convert (footer vs home vs contact, etc.).
  */
-export function NewsletterForm() {
+export function NewsletterForm({
+  source = "footer",
+  helperText = "We send a confirmation email. You can unsubscribe any time.",
+  successMessage = "Check your inbox for a confirmation email — open it to activate your subscription.",
+  className,
+}: NewsletterFormProps = {}) {
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [done, setDone] = useState(false);
@@ -33,7 +53,7 @@ export function NewsletterForm() {
     try {
       await apiFetch("/newsletter/subscribe", {
         method: "POST",
-        body: { email, source: "footer", turnstileToken: token },
+        body: { email, source, turnstileToken: token },
       });
       setDone(true);
     } catch (err) {
@@ -45,21 +65,28 @@ export function NewsletterForm() {
 
   if (done) {
     return (
-      <div className="mt-6 max-w-sm">
-        <Alert variant="success">
-          Check your inbox for a confirmation email — open it to activate your subscription.
-        </Alert>
+      <div className={`mt-6 max-w-sm ${className ?? ""}`}>
+        <Alert variant="success">{successMessage}</Alert>
       </div>
     );
   }
 
+  // A stable per-source field id keeps multiple instances on a page (footer +
+  // homepage) accessible without label collisions.
+  const fieldId = `newsletter-email-${source}`;
+
   return (
-    <form onSubmit={submit} className="mt-6 max-w-sm" aria-label="Newsletter signup">
-      <label htmlFor="newsletter-email" className="sr-only">
+    <form
+      onSubmit={submit}
+      className={`mt-2 w-full max-w-sm ${className ?? ""}`}
+      aria-label="Newsletter signup"
+      noValidate
+    >
+      <label htmlFor={fieldId} className="sr-only">
         Email address
       </label>
       <input
-        id="newsletter-email"
+        id={fieldId}
         type="email"
         required
         autoComplete="email"
@@ -77,9 +104,7 @@ export function NewsletterForm() {
       <Button type="submit" variant="primary" size="sm" block className="mt-3" disabled={pending}>
         {pending ? "Subscribing…" : "Subscribe"}
       </Button>
-      <p className="mt-3 font-sans text-xs text-neutral-500">
-        We send a confirmation email. You can unsubscribe any time.
-      </p>
+      <p className="mt-3 font-sans text-xs text-neutral-500">{helperText}</p>
     </form>
   );
 }

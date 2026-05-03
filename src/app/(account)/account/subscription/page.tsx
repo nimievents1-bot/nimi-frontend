@@ -8,7 +8,7 @@ import { apiFetch } from "@/lib/api";
 import { ManageSubscription } from "./ManageSubscription";
 
 export const metadata: Metadata = {
-  title: "Pastry Cravings — your subscription",
+  title: "The Indulgence Club — your subscription",
   robots: { index: false, follow: false },
 };
 
@@ -73,13 +73,13 @@ export default async function SubscriptionPage({
     <>
       <p className="eyebrow mb-2">Your account</p>
       <h1 className="m-0 mb-6 font-display text-5xl font-medium text-maroon-600">
-        Pastry Cravings
+        The Indulgence Club
       </h1>
 
       {searchParams.status === "subscribed" ? (
         <Alert variant="success" className="mb-6">
-          You&rsquo;re subscribed. Welcome to Cravings — your first credit will land on your next
-          billing cycle.
+          Welcome to The Nimi Indulgence Club — your first month&rsquo;s Indulgence Credits will
+          land on your next billing cycle.
         </Alert>
       ) : null}
       {error ? (
@@ -91,7 +91,7 @@ export default async function SubscriptionPage({
       {!state || !state.subscription ? (
         <div className="border border-dashed border-cream-200 bg-paper p-10 text-center">
           <p className="m-0 mb-4 font-sans text-base text-neutral-700">
-            You don&rsquo;t have an active Cravings subscription yet.
+            You haven&rsquo;t joined The Indulgence Club yet.
           </p>
           <a
             href="/cravings"
@@ -153,7 +153,7 @@ export default async function SubscriptionPage({
 
             <section className="border border-cream-200 bg-paper p-6">
               <h2 className="m-0 mb-4 font-display text-2xl font-medium text-maroon-600">
-                Credit balance
+                Indulgence Credits
               </h2>
               <p className="m-0 mb-1 font-display text-4xl font-medium text-orange-700">
                 {fmt(state.balanceMinor, state.subscription.currency)}
@@ -163,13 +163,18 @@ export default async function SubscriptionPage({
               </p>
               {state.subscription.creditExpiresAt ? (
                 <p className="mt-3 font-sans text-sm text-neutral-700">
-                  Credit expires{" "}
+                  Credits expire{" "}
                   <strong>
                     {new Date(state.subscription.creditExpiresAt).toLocaleDateString()}
                   </strong>
                   .
                 </p>
-              ) : null}
+              ) : (
+                <p className="mt-3 font-sans text-sm text-neutral-500">
+                  Each month&rsquo;s credits are valid for three months from issue. Minimum pastry
+                  order: £25.
+                </p>
+              )}
             </section>
           </div>
 

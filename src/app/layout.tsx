@@ -38,11 +38,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(clientEnv.NEXT_PUBLIC_WEB_ORIGIN),
   title: {
-    default: "Nimi Events — Catering, Event Planning, Gifting",
+    default: "Nimi Events — Authentically African Catering, Planning & Gifting",
     template: "%s · Nimi Events",
   },
   description:
-    "Nimi Events — catering, event planning, gifting and the Pastry Cravings monthly subscription. Where good food gathers.",
+    "Nimi Events — authentically African catering, event planning, gifting, content creation and The Nimi Indulgence Club. Authentically African flavours, considered planning, and gifts that arrive on time.",
   applicationName: "Nimi Events",
   keywords: [
     "catering",

@@ -5,9 +5,9 @@ import { NewsletterForm } from "./NewsletterForm";
 const services = [
   { label: "Catering", href: "/catering" },
   { label: "Event planning", href: "/events" },
-  { label: "Event coordination", href: "/events#coordination" },
+  { label: "Event content creation", href: "/content-creation" },
   { label: "Gifting", href: "/gifting" },
-  { label: "Pastry Cravings", href: "/cravings" },
+  { label: "The Indulgence Club", href: "/cravings" },
 ];
 
 const help = [
@@ -30,9 +30,9 @@ export function Footer() {
           <h5 className="mb-4 font-display text-3xl font-medium text-maroon-600">
             About Nimi Events
           </h5>
-          <p className="mb-4 font-sans text-base text-neutral-700">
-            Catering, planning and gifting for the moments that matter.
-            Family kitchen, hospitality standard.
+          <p className="mb-4 max-w-prose font-sans text-base text-neutral-700">
+            Authentically African flavours, considered planning, and gifts that arrive on time.
+            A family kitchen, scaled with care.
           </p>
           <p className="mb-1 font-sans text-base text-neutral-700">020 0000 0000</p>
           <Link
@@ -42,7 +42,10 @@ export function Footer() {
             hello@nimievents.co.uk
           </Link>
 
-          <NewsletterForm />
+          <p className="mt-6 mb-1 font-display text-base font-medium text-maroon-700">
+            Subscribe for event updates, seasonal menus, exclusive offers, and new collection drops.
+          </p>
+          <NewsletterForm source="footer" />
         </div>
 
         <FooterCol heading="Services" items={services} />
