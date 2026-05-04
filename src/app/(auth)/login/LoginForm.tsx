@@ -62,7 +62,23 @@ export function LoginForm({ next, status }: LoginFormProps) {
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
-        setServerError(err.detail);
+        // 429 (rate limit) and 423 (per-account lockout) deserve their own
+        // wording — the raw NestJS detail ("ThrottlerException: Too Many
+        // Requests") is unfriendly and gives away implementation details.
+        if (err.status === 429) {
+          setServerError(
+            "Too many sign-in attempts from this device. Please wait a minute and try again.",
+          );
+        } else if (err.status === 423 || /lock/i.test(err.detail)) {
+          setServerError(
+            "This account is temporarily locked after several failed attempts. Try again in 15 minutes, or reset your password.",
+          );
+        } else if (err.status === 401) {
+          // Anti-enumeration: same wording for "no such email" and "wrong password".
+          setServerError("That email or password isn't right. Please try again.");
+        } else {
+          setServerError(err.detail || "Something went wrong. Please try again.");
+        }
       } else {
         setServerError("Something went wrong. Please try again.");
       }

@@ -74,6 +74,26 @@ export function Footer() {
           </Link>
         </span>
       </div>
+
+      {/*
+        Build credit — small, centred, reduced opacity so it doesn't compete
+        with the brand on the footer above. `rel="noopener"` is standard for
+        any external link opened in a new tab; `noreferrer` is omitted on
+        purpose so Studio MVP can see the inbound traffic in their analytics.
+      */}
+      <div className="mx-auto mt-6 max-w-page text-center">
+        <span className="font-sans text-xs text-neutral-500">
+          Built by{" "}
+          <a
+            href="https://studiomvp.co.uk"
+            target="_blank"
+            rel="noopener"
+            className="font-medium text-maroon-700 underline underline-offset-4 hover:text-orange-600"
+          >
+            Studio MVP
+          </a>
+        </span>
+      </div>
     </footer>
   );
 }
