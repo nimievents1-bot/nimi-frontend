@@ -121,8 +121,12 @@ export default async function GiftingPage() {
       throwOnError: true,
     });
   } catch {
-    // Until the founder seeds collections via the admin / Prisma Studio,
-    // show a brand-styled placeholder set so the page is never empty.
+    // API unreachable — fall through to placeholder set below.
+  }
+  // Until the founder seeds real collections via admin / Prisma Studio,
+  // an *empty* successful response should also drop into the placeholder
+  // set so the marketing page never renders with a blank grid.
+  if (collections.length === 0) {
     collections = FALLBACK;
   }
 
