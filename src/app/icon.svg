@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!--
+    Favicon — Nimi Events pot mark.
+
+    Why a simplified version of the full Wordmark logo:
+      - Browsers render this at 16x16 / 32x32. Fine details (smoke wisps,
+        seven thin slits) disappear or alias badly at those sizes, so the
+        favicon uses a tight composition with bold colour blocks: cream
+        background, orange pot, maroon lid + handles + accent slits.
+      - viewBox is 100x100 to match NimiPotMark.tsx so the visual identity
+        stays consistent between the inline header logo and the tab icon.
+      - Background fill keeps the icon legible on any browser/system theme
+        (light, dark, sepia tab bars all show the same warm cream).
+  -->
+  <rect width="100" height="100" rx="20" fill="#FBF7EB"/>
+
+  <!-- single bold smoke wisp, thicker than the in-page version so it survives downscaling -->
+  <path d="M52 18c-4 6 2 9 4 14s-2 9-6 12"
+        fill="none" stroke="#5C1F18" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- lid -->
+  <ellipse cx="50" cy="44" rx="34" ry="7" fill="#5C1F18"/>
+  <rect x="45" y="33" width="10" height="8" rx="2" fill="#5C1F18"/>
+
+  <!-- body -->
+  <path d="M18 46 h64 l-5 32 a11 11 0 0 1 -11 9 h-32 a11 11 0 0 1 -11 -9 z"
+        fill="#D9602B"/>
+
+  <!-- handles -->
+  <ellipse cx="16" cy="58" rx="4" ry="6" fill="#D9602B"/>
+  <ellipse cx="84" cy="58" rx="4" ry="6" fill="#D9602B"/>
+
+  <!-- 3 wider accent slits — readable at favicon sizes where 7 thin slits blur -->
+  <g fill="#5C1F18">
+    <rect x="36" y="60" width="4" height="9" rx="1.5"/>
+    <rect x="48" y="60" width="4" height="9" rx="1.5"/>
+    <rect x="60" y="60" width="4" height="9" rx="1.5"/>
+  </g>
+</svg>
