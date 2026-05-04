@@ -40,11 +40,28 @@ interface ProblemDetails {
   errors?: string[];
 }
 
+/**
+ * Resolve the base URL the next fetch will hit.
+ *
+ *   Server-side (Node runtime — SSR / Route Handlers / Server Actions):
+ *     Talk directly to the Railway API via `INTERNAL_API_URL`. Falls back
+ *     to `NEXT_PUBLIC_API_URL` for environments that haven't split the env
+ *     vars apart. Direct calls avoid the Vercel-rewrite round-trip and are
+ *     ~50–100ms faster than going browser → Vercel proxy → Railway.
+ *
+ *   Browser (any client-side fetch in a "use client" component):
+ *     Return an empty string so URLs resolve to relative same-origin paths
+ *     (`/api/v1/...`). Those hit Vercel's `rewrites()` rule in
+ *     `next.config.mjs`, which transparently proxies to Railway. The
+ *     critical effect: Set-Cookie headers attach to *our* domain
+ *     (`nimievents.com`), not the Railway API origin, so cookies persist
+ *     across the rest of the user's session.
+ */
 const apiBase = (): string => {
   if (typeof window === "undefined") {
     return process.env.INTERNAL_API_URL ?? clientEnv.NEXT_PUBLIC_API_URL;
   }
-  return clientEnv.NEXT_PUBLIC_API_URL;
+  return ""; // browser → same-origin; Vercel rewrite handles the upstream
 };
 
 export async function apiFetch<T = unknown>(
