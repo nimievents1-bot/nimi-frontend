@@ -43,7 +43,9 @@ export default function CateringBookingPage({ searchParams }: PageProps) {
             for smaller ones. Rush windows depend on the calendar.
           </p>
           <div className="mt-10">
-            <CateringBookingForm initialTier={initialTier} />
+            {/* Spread `initialTier` only when present — `exactOptionalPropertyTypes`
+                rejects passing literal `undefined` to an optional prop. */}
+            <CateringBookingForm {...(initialTier ? { initialTier } : {})} />
           </div>
         </div>
       </section>

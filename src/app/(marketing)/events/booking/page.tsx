@@ -43,7 +43,9 @@ export default function EventsBookingPage({ searchParams }: PageProps) {
             alternative within one working day.
           </p>
           <div className="mt-10">
-            <EventsBookingForm initialTier={initialTier} />
+            {/* Spread `initialTier` only when present — `exactOptionalPropertyTypes`
+                rejects passing literal `undefined` to an optional prop. */}
+            <EventsBookingForm {...(initialTier ? { initialTier } : {})} />
           </div>
         </div>
       </section>
