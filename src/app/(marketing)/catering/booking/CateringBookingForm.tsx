@@ -91,7 +91,9 @@ export function CateringBookingForm({ initialTier }: CateringBookingFormProps = 
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(Schema),
-    defaultValues: initialTier ? { serviceStyle: initialTier } : undefined,
+    // Conditional spread keeps the property absent when there's no initial
+    // tier — `exactOptionalPropertyTypes: true` rejects literal `undefined`.
+    ...(initialTier ? { defaultValues: { serviceStyle: initialTier } } : {}),
   });
 
   const submit = handleSubmit(async (values) => {

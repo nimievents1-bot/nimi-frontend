@@ -118,7 +118,9 @@ export function EventsBookingForm({ initialTier }: EventsBookingFormProps = {}) 
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(Schema),
-    defaultValues: initialTier ? { package: initialTier } : undefined,
+    // Conditional spread keeps the property absent when there's no initial
+    // tier — `exactOptionalPropertyTypes: true` rejects literal `undefined`.
+    ...(initialTier ? { defaultValues: { package: initialTier } } : {}),
   });
 
   const submit = handleSubmit(async (values) => {

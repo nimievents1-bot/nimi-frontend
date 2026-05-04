@@ -112,14 +112,26 @@ export async function Testimonials({ limit = 6 }: { limit?: number } = {}) {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {rows.map((t) => (
-        <TestimonialCard
-          key={t.id}
-          quote={t.body}
-          attribution={[t.authorName, t.role].filter(Boolean).join(" · ")}
-          rating={t.rating ?? undefined}
-        />
-      ))}
+      {rows.map((t) => {
+        // Build attribution string up-front so TS narrows the role check
+        // and we don't end up with "Name · null" if role is null.
+        const attribution = t.role
+          ? `${t.authorName} · ${t.role}`
+          : t.authorName;
+
+        // Conditional spread for the optional prop — `exactOptionalPropertyTypes`
+        // refuses a literal `undefined` for an optional `rating?: number`.
+        const ratingProps = t.rating !== null ? { rating: t.rating } : {};
+
+        return (
+          <TestimonialCard
+            key={t.id}
+            quote={t.body}
+            attribution={attribution}
+            {...ratingProps}
+          />
+        );
+      })}
     </div>
   );
 }
