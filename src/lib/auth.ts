@@ -21,10 +21,30 @@ export interface SessionUser {
  *
  * IMPORTANT: this is a server-only helper. Calling it from a Client Component
  * fails the "server-only" import boundary at build time.
+ *
+ * Diagnostic logging is on by default — these lines surface in Vercel's
+ * function logs and are essential for debugging session loss in production.
+ * They never log the cookie value itself, only the names that arrived.
  */
 export async function getSessionUser(): Promise<SessionUser | null> {
-  const cookieHeader = (await cookies()).toString();
-  if (!cookieHeader) return null;
+  const cookieJar = await cookies();
+  const cookieNames = cookieJar.getAll().map((c) => c.name);
+  const cookieHeader = cookieJar.toString();
+
+  if (!cookieHeader) {
+    // eslint-disable-next-line no-console
+    console.warn("[auth] getSessionUser: no cookies on incoming request");
+    return null;
+  }
+
+  if (!cookieNames.includes("nimi_at")) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[auth] getSessionUser: nimi_at cookie missing; cookies present:",
+      cookieNames,
+    );
+    return null;
+  }
 
   try {
     const data = await apiFetch<{ user: SessionUser }>("/auth/me", {
@@ -34,7 +54,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       throwOnError: true,
     });
     return data.user;
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[auth] getSessionUser: /auth/me rejected the cookie:",
+      err instanceof Error ? err.message : String(err),
+    );
     return null;
   }
 }
