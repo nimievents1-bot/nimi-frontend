@@ -32,7 +32,10 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable }: CheckoutFormProps
   const [shippingLine2, setShippingLine2] = useState("");
   const [shippingCity, setShippingCity] = useState("");
   const [shippingPostcode, setShippingPostcode] = useState("");
-  const [shippingCountry, setShippingCountry] = useState("GB");
+  // Country is locked to GB for v1 (delivery is UK-only). When the
+  // operator opens up multi-country shipping, expose a select field
+  // here and replace this constant with state.
+  const shippingCountry = "GB";
   const [notes, setNotes] = useState("");
 
   const [pending, setPending] = useState(false);
