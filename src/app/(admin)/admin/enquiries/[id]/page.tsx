@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 import { EnquiryActions } from "./EnquiryActions";
 
@@ -36,20 +37,35 @@ const statusVariant: Record<Enquiry["status"], "orange" | "neutral" | "success" 
   SPAM: "maroon",
 };
 
-export default async function AdminEnquiryDetail({ params }: { params: { id: string } }) {
+export default async function AdminEnquiryDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const cookieHeader = (await cookies()).toString();
 
+  // Distinguish a real 404 (enquiry id doesn't exist) from a transient
+  // API failure so the operator sees an actual error rather than a
+  // misleading 404 page.
   let enquiry: Enquiry | null = null;
+  let fetchError: string | null = null;
   try {
-    enquiry = await apiFetch<Enquiry>(`/admin/enquiries/${params.id}`, {
+    enquiry = await apiFetch<Enquiry>(`/admin/enquiries/${id}`, {
       method: "GET",
       headers: { Cookie: cookieHeader },
       cache: "no-store",
     });
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      notFound();
+    }
+    fetchError = err instanceof Error ? err.message : "Failed to load enquiry.";
   }
 
+  if (fetchError) {
+    return (
+      <Alert variant="danger" className="mt-6">
+        Couldn&rsquo;t load this enquiry: {fetchError}
+      </Alert>
+    );
+  }
   if (!enquiry) notFound();
 
   return (

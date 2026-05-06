@@ -37,9 +37,10 @@ async function fetchPost(slug: string): Promise<Post | null> {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const post = await fetchPost(params.slug);
+  const { slug } = await params;
+  const post = await fetchPost(slug);
   if (!post) return { title: "Not found" };
   const title = post.seoTitle ?? post.title;
   const description = post.seoDescription ?? post.excerpt;
@@ -57,8 +58,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function JournalPostPage({ params }: { params: { slug: string } }) {
-  const post = await fetchPost(params.slug);
+export default async function JournalPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await fetchPost(slug);
   if (!post) notFound();
 
   const articleSchema = {

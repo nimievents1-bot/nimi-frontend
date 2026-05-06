@@ -61,27 +61,36 @@ export function PostEditor({ initial }: { initial: InitialPost }) {
     .map((t) => t.trim())
     .filter(Boolean);
 
+  /**
+   * Inner helper that just persists the editable fields. Throws on failure
+   * so the caller can decide what to do — `save()` reports the error,
+   * `publish()` aborts the publish step.
+   */
+  const persistDraft = async (): Promise<void> => {
+    await apiFetch(`/admin/blog/posts/${initial.id}`, {
+      method: "PATCH",
+      body: {
+        title,
+        excerpt,
+        body,
+        authorName,
+        ...(category ? { category } : { category: "" }),
+        tags,
+        ...(coverUrl ? { coverUrl } : { coverUrl: "" }),
+        ...(coverAlt ? { coverAlt } : { coverAlt: "" }),
+        ...(seoTitle ? { seoTitle } : { seoTitle: "" }),
+        ...(seoDescription ? { seoDescription } : { seoDescription: "" }),
+        ...(ogImageUrl ? { ogImageUrl } : { ogImageUrl: "" }),
+      },
+    });
+  };
+
   const save = async () => {
     setError(null);
     setSuccess(null);
     setPending(true);
     try {
-      await apiFetch(`/admin/blog/posts/${initial.id}`, {
-        method: "PATCH",
-        body: {
-          title,
-          excerpt,
-          body,
-          authorName,
-          ...(category ? { category } : { category: "" }),
-          tags,
-          ...(coverUrl ? { coverUrl } : { coverUrl: "" }),
-          ...(coverAlt ? { coverAlt } : { coverAlt: "" }),
-          ...(seoTitle ? { seoTitle } : { seoTitle: "" }),
-          ...(seoDescription ? { seoDescription } : { seoDescription: "" }),
-          ...(ogImageUrl ? { ogImageUrl } : { ogImageUrl: "" }),
-        },
-      });
+      await persistDraft();
       setSuccess("Draft saved.");
       router.refresh();
     } catch (err) {
@@ -91,13 +100,17 @@ export function PostEditor({ initial }: { initial: InitialPost }) {
     }
   };
 
+  /**
+   * Save-then-publish in a single pending window so the buttons can't be
+   * clicked again between the two calls. If the save fails the publish is
+   * never attempted — preventing publication of stale on-screen data.
+   */
   const publish = async () => {
     setError(null);
     setSuccess(null);
     setPending(true);
     try {
-      // Save first to flush any unsaved changes, then publish.
-      await save();
+      await persistDraft();
       await apiFetch(`/admin/blog/posts/${initial.id}/publish`, {
         method: "POST",
         body: scheduledFor ? { scheduledFor: new Date(scheduledFor).toISOString() } : {},

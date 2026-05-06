@@ -9,18 +9,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function MfaChallengePage({
+export default async function MfaChallengePage({
   searchParams,
 }: {
-  searchParams: { next?: string };
+  searchParams: Promise<{ next?: string }>;
 }) {
+  const { next } = await searchParams;
   return (
     <AuthShell
       eyebrow="Two-step verification"
       title="One more step."
       lede="Enter the six-digit code from your authenticator app to finish signing in."
     >
-      <MfaChallengeForm next={searchParams.next ?? "/account"} />
+      <MfaChallengeForm next={next ?? "/account"} />
     </AuthShell>
   );
 }

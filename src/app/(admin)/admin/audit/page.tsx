@@ -49,18 +49,19 @@ function actionVariant(action: string): "orange" | "neutral" | "success" | "maro
 export default async function AdminAuditPage({
   searchParams,
 }: {
-  searchParams: { action?: string; entity?: string; page?: string };
+  searchParams: Promise<{ action?: string; entity?: string; page?: string }>;
 }) {
+  const { action, entity, page } = await searchParams;
   const cookieHeader = (await cookies()).toString();
 
   const limit = 50;
-  const offset = (Number(searchParams.page ?? "1") - 1) * limit;
+  const offset = (Number(page ?? "1") - 1) * limit;
 
   const qs = new URLSearchParams();
   qs.set("limit", String(limit));
   qs.set("offset", String(offset));
-  if (searchParams.action) qs.set("action", searchParams.action);
-  if (searchParams.entity) qs.set("entity", searchParams.entity);
+  if (action) qs.set("action", action);
+  if (entity) qs.set("entity", entity);
 
   let data: ListResponse | null = null;
   let error: string | null = null;
@@ -91,7 +92,7 @@ export default async function AdminAuditPage({
           Action prefix
           <input
             name="action"
-            defaultValue={searchParams.action ?? ""}
+            defaultValue={action ?? ""}
             placeholder="e.g. content. or auth."
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           />
@@ -100,7 +101,7 @@ export default async function AdminAuditPage({
           Entity
           <input
             name="entity"
-            defaultValue={searchParams.entity ?? ""}
+            defaultValue={entity ?? ""}
             placeholder="e.g. ContentBlock, GiftOrder"
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           />
@@ -174,7 +175,7 @@ export default async function AdminAuditPage({
           <div className="flex gap-2">
             {currentPage > 1 ? (
               <Link
-                href={pageHref(searchParams, currentPage - 1)}
+                href={pageHref({ action, entity }, currentPage - 1)}
                 className="border border-cream-200 px-3 py-1.5 hover:bg-cream-100"
               >
                 ← Newer
@@ -182,7 +183,7 @@ export default async function AdminAuditPage({
             ) : null}
             {currentPage < totalPages ? (
               <Link
-                href={pageHref(searchParams, currentPage + 1)}
+                href={pageHref({ action, entity }, currentPage + 1)}
                 className="border border-cream-200 px-3 py-1.5 hover:bg-cream-100"
               >
                 Older →

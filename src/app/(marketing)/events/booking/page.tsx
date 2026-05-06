@@ -18,11 +18,12 @@ const VALID_TIERS: ReadonlySet<EventsTierSlug> = new Set([
 interface PageProps {
   // App Router exposes URL query params here. Anything the user types is a
   // string, so we narrow before passing the slug down to the client form.
-  searchParams?: { tier?: string };
+  searchParams?: Promise<{ tier?: string }>;
 }
 
-export default function EventsBookingPage({ searchParams }: PageProps) {
-  const raw = searchParams?.tier;
+export default async function EventsBookingPage({ searchParams }: PageProps) {
+  const resolved = searchParams ? await searchParams : undefined;
+  const raw = resolved?.tier;
   const initialTier =
     raw && VALID_TIERS.has(raw as EventsTierSlug)
       ? (raw as EventsTierSlug)

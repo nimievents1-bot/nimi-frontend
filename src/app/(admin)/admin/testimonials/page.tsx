@@ -32,14 +32,15 @@ interface ListResponse {
 export default async function AdminTestimonialsPage({
   searchParams,
 }: {
-  searchParams: { isPublished?: string; q?: string };
+  searchParams: Promise<{ isPublished?: string; q?: string }>;
 }) {
+  const { isPublished, q } = await searchParams;
   const cookieHeader = (await cookies()).toString();
 
   const qs = new URLSearchParams();
-  if (searchParams.isPublished === "true") qs.set("isPublished", "true");
-  if (searchParams.isPublished === "false") qs.set("isPublished", "false");
-  if (searchParams.q) qs.set("q", searchParams.q);
+  if (isPublished === "true") qs.set("isPublished", "true");
+  if (isPublished === "false") qs.set("isPublished", "false");
+  if (q) qs.set("q", q);
   qs.set("limit", "100");
 
   let data: ListResponse | null = null;
@@ -71,7 +72,7 @@ export default async function AdminTestimonialsPage({
           Visibility
           <select
             name="isPublished"
-            defaultValue={searchParams.isPublished ?? ""}
+            defaultValue={isPublished ?? ""}
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           >
             <option value="">All</option>
@@ -83,7 +84,7 @@ export default async function AdminTestimonialsPage({
           Search
           <input
             name="q"
-            defaultValue={searchParams.q ?? ""}
+            defaultValue={q ?? ""}
             placeholder="Author, body, role…"
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           />

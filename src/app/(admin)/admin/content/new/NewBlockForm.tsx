@@ -34,17 +34,28 @@ const TYPES = [
   { value: "footer", label: "Footer — about, contact, social" },
 ] as const;
 
+/**
+ * Each entry must already pass the matching Zod schema in the API
+ * (`nimi-api/src/modules/content/blocks.ts`). Empty strings are NOT
+ * allowed where the schema sets `.min(1)` — we'd hit a 400 on create.
+ * Use clearly-placeholder copy the founder can replace in the editor.
+ */
 const minimalDefaults: Record<string, Record<string, unknown>> = {
   hero: {
     imageUrl: null,
-    alt: "",
+    alt: "Hero image — replace before publishing",
     eyebrow: null,
     headline: "Headline goes here",
     subheadline: null,
     primaryCta: null,
   },
   richtext: { html: "<p>Write something…</p>" },
-  "section-intro": { eyebrow: null, title: "Title", body: "Body copy", imageUrl: null },
+  "section-intro": {
+    eyebrow: null,
+    title: "Title",
+    body: "Body copy",
+    imageUrl: null,
+  },
   "package-tier": {
     name: "Tier",
     position: 1,
@@ -55,8 +66,18 @@ const minimalDefaults: Record<string, Record<string, unknown>> = {
   },
   faq: { items: [{ question: "Question?", answer: "Answer." }] },
   gallery: { images: [] },
-  testimonial: { quote: "Quote", author: "Author", role: null, imageUrl: null },
-  footer: { about: "About", phone: "", email: "hello@nimievents.co.uk", social: null },
+  testimonial: {
+    quote: "Quote goes here.",
+    author: "Author",
+    role: null,
+    imageUrl: null,
+  },
+  footer: {
+    about: "About text goes here.",
+    phone: "—",
+    email: "hello@nimievents.co.uk",
+    social: null,
+  },
 };
 
 export function NewBlockForm() {

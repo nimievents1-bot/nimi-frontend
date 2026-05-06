@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 import { AdminOrderActions } from "./AdminOrderActions";
 
@@ -34,20 +35,34 @@ interface AdminOrder {
   }>;
 }
 
-export default async function AdminOrderDetail({ params }: { params: { id: string } }) {
+export default async function AdminOrderDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const cookieHeader = (await cookies()).toString();
 
+  // Distinguish a real 404 (order id doesn't exist) from a transient API
+  // failure so an outage doesn't masquerade as a missing order.
   let order: AdminOrder | null = null;
+  let fetchError: string | null = null;
   try {
-    order = await apiFetch<AdminOrder>(`/admin/gifting/orders/${params.id}`, {
+    order = await apiFetch<AdminOrder>(`/admin/gifting/orders/${id}`, {
       method: "GET",
       headers: { Cookie: cookieHeader },
       cache: "no-store",
     });
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      notFound();
+    }
+    fetchError = err instanceof Error ? err.message : "Failed to load order.";
   }
 
+  if (fetchError) {
+    return (
+      <Alert variant="danger" className="mt-6">
+        Couldn&rsquo;t load this order: {fetchError}
+      </Alert>
+    );
+  }
   if (!order) notFound();
 
   const fmt = new Intl.NumberFormat("en-GB", {

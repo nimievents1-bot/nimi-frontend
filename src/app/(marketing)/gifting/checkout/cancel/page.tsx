@@ -10,11 +10,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function CheckoutCancelPage({
+export default async function CheckoutCancelPage({
   searchParams,
 }: {
-  searchParams: { ref?: string };
+  searchParams: Promise<{ ref?: string }>;
 }) {
+  const { ref } = await searchParams;
   return (
     <AuthShell
       eyebrow="Order"
@@ -22,7 +23,7 @@ export default function CheckoutCancelPage({
       lede="No payment has been taken. You can pick up where you left off any time."
     >
       <Alert variant="info">
-        {searchParams.ref ? `Reference ${searchParams.ref}.` : null} If you ran into a problem during
+        {ref ? `Reference ${ref}.` : null} If you ran into a problem during
         checkout, write to <a href="mailto:hello@nimievents.co.uk" className="underline">hello@nimievents.co.uk</a>{" "}
         and we&rsquo;ll help you complete the order.
       </Alert>

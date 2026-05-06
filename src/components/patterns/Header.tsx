@@ -79,14 +79,28 @@ export function Header({ onDark = false, current = "" }: HeaderProps) {
         })}
       </nav>
 
-      {/* Desktop stamp — hidden below md so we don't compete with the hamburger. */}
-      <div className="hidden md:block">
+      {/* Desktop right column: cart indicator + Get-in-Touch stamp.
+          Cart link stays small so it doesn't compete with the stamp's
+          italic-serif voice — just a brand-toned text link. */}
+      <div className="hidden items-center gap-5 md:flex">
+        <Link
+          href="/cart"
+          aria-label="Open cart"
+          className={cn(
+            "font-display text-base italic transition-colors duration-fast ease-brand",
+            onDark
+              ? "text-cream-50 hover:text-orange-300"
+              : "text-maroon-700 hover:text-orange-700",
+          )}
+        >
+          Cart
+        </Link>
         <Stamp onDark={onDark} />
       </div>
 
       {/* Mobile-only menu trigger and drawer. */}
       <div className="md:hidden">
-        <MobileMenu items={navItems} onDark={onDark} />
+        <MobileMenu items={[...navItems, { label: "Cart", href: "/cart" }]} onDark={onDark} />
       </div>
     </header>
   );

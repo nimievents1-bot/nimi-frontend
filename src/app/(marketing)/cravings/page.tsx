@@ -3,46 +3,61 @@ import { type Metadata } from "next";
 import { Hero } from "@/components/patterns/Hero";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
+import { getSessionUser } from "@/lib/auth";
 import { heroBackground, images } from "@/lib/images";
 
+import { AddToCartButton } from "./AddToCartButton";
 import { PlanGrid } from "./PlanGrid";
 
 /**
- * Pastry gallery items. Each entry's `imageKey` points at a slot in
- * `images.pastries.*` so swapping a single product photo later is a
- * one-line change in `lib/images.ts`. The `tagline` is kept short — the
- * grid renders editorially and the photo carries most of the meaning.
+ * Public pastry shape returned by `/v1/pastries`. Mirrors the API DTO.
+ * Field names align with PastriesService.listAvailable so this type
+ * doubles as the fallback row's contract.
  */
-const pastryGallery: ReadonlyArray<{
+interface PublicPastry {
+  id: string;
+  slug: string;
   name: string;
-  tagline: string;
+  description: string | null;
+  priceMinor: number;
+  currency: string;
+  imageUrl: string | null;
+  imageAlt: string | null;
+  tags: string[];
+  leadTimeDays: number;
+}
+
+/**
+ * Stand-in pastries used when the API has no items published yet (or is
+ * unreachable). These map onto the `images.pastries.*` slots so the page
+ * is never blank during the soft-launch window. As soon as the founder
+ * publishes real items in /admin/menu, this list stops rendering.
+ */
+const PLACEHOLDER_PASTRIES: ReadonlyArray<{
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  priceMinor: number;
   imageKey: keyof typeof images.pastries;
-  /** Mark items the kitchen ships rarely so customers know to plan ahead. */
   limited?: boolean;
 }> = [
-  { name: "Meat Pie", tagline: "Buttery shortcrust, peppered beef.", imageKey: "meatPie" },
-  { name: "Chicken Pie", tagline: "Soft pastry, herbed chicken.", imageKey: "chickenPie" },
-  { name: "Egg Rolls", tagline: "Boiled egg, sausage-style dough.", imageKey: "eggRoll" },
-  { name: "Fish Pie", tagline: "Smoked fish, scotch-bonnet warmth.", imageKey: "fishPie" },
-  { name: "Puff Puff", tagline: "Pillowy fried dough, glossy with sugar.", imageKey: "puffPuff" },
-  { name: "Zobo", tagline: "Hibiscus, ginger, citrus — chilled.", imageKey: "zobo" },
-  {
-    name: "Chicken Shawarma",
-    tagline: "Spiced chicken, garlic sauce, pickles.",
-    imageKey: "chickenShawarma",
-  },
-  {
-    name: "Asun Shawarma",
-    tagline: "Smoked goat asun, peppered hot.",
-    imageKey: "asunShawarma",
-    limited: true,
-  },
-  {
-    name: "Combo Shawarma",
-    tagline: "Asun and chicken in one wrap.",
-    imageKey: "comboShawarma",
-  },
+  { id: "p-1", slug: "meat-pie", name: "Meat Pie", description: "Buttery shortcrust, peppered beef.", priceMinor: 500, imageKey: "meatPie" },
+  { id: "p-2", slug: "chicken-pie", name: "Chicken Pie", description: "Soft pastry, herbed chicken.", priceMinor: 500, imageKey: "chickenPie" },
+  { id: "p-3", slug: "egg-roll", name: "Egg Rolls", description: "Boiled egg, sausage-style dough.", priceMinor: 400, imageKey: "eggRoll" },
+  { id: "p-4", slug: "fish-pie", name: "Fish Pie", description: "Smoked fish, scotch-bonnet warmth.", priceMinor: 550, imageKey: "fishPie" },
+  { id: "p-5", slug: "puff-puff", name: "Puff Puff", description: "Pillowy fried dough, glossy with sugar.", priceMinor: 350, imageKey: "puffPuff" },
+  { id: "p-6", slug: "zobo", name: "Zobo", description: "Hibiscus, ginger, citrus — chilled.", priceMinor: 400, imageKey: "zobo" },
+  { id: "p-7", slug: "chicken-shawarma", name: "Chicken Shawarma", description: "Spiced chicken, garlic sauce, pickles.", priceMinor: 1200, imageKey: "chickenShawarma" },
+  { id: "p-8", slug: "asun-shawarma", name: "Asun Shawarma", description: "Smoked goat asun, peppered hot.", priceMinor: 1400, imageKey: "asunShawarma", limited: true },
+  { id: "p-9", slug: "combo-shawarma", name: "Combo Shawarma", description: "Asun and chicken in one wrap.", priceMinor: 1500, imageKey: "comboShawarma" },
 ];
+
+const fmtGBP = (minor: number, currency = "gbp") =>
+  new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format(minor / 100);
 
 export const metadata: Metadata = {
   title: "The Nimi Indulgence Club",
@@ -120,6 +135,12 @@ const benefits: ReadonlyArray<{ title: string; description: string }> = [
 ];
 
 export default async function IndulgenceClubPage() {
+  // Reading the session here is server-side and quick (single API call
+  // with cookie forwarding); fine to do on a public page because the
+  // helper returns null for unauthenticated visitors.
+  const user = await getSessionUser();
+  const isAuthed = Boolean(user);
+
   let plans: PublicPlan[] = [];
   try {
     plans = await apiFetch<PublicPlan[]>("/cravings/plans", {
@@ -131,6 +152,24 @@ export default async function IndulgenceClubPage() {
   } catch {
     plans = FALLBACK_PLANS;
   }
+
+  // Live pastry catalog. Falls back to the curated placeholder set when
+  // the API is unreachable OR returns zero items (pre-launch state).
+  let pastries: PublicPastry[] = [];
+  try {
+    const response = await apiFetch<{ rows: PublicPastry[]; total: number }>(
+      "/pastries?limit=24",
+      {
+        method: "GET",
+        next: { revalidate: 60, tags: ["pastries"] },
+        throwOnError: true,
+      },
+    );
+    pastries = response.rows;
+  } catch {
+    // Silent fall-through — placeholder is rendered below.
+  }
+  const usingPlaceholders = pastries.length === 0;
 
   return (
     <>
@@ -229,35 +268,92 @@ export default async function IndulgenceClubPage() {
           </p>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3">
-            {pastryGallery.map((item) => (
-              <article
-                key={item.name}
-                className="group relative overflow-hidden border border-cream-200 bg-cream-50"
-              >
-                <div
-                  role="img"
-                  aria-label={`${item.name} — ${item.tagline}`}
-                  className="aspect-square w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand group-hover:scale-105"
-                  style={heroBackground(images.pastries[item.imageKey])}
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-maroon-700/95 via-maroon-700/60 to-transparent p-4 pt-10">
-                  <h3 className="m-0 font-display text-lg font-medium text-cream-50">
-                    {item.name}
-                  </h3>
-                  <p className="m-0 font-sans text-xs text-cream-50/85">{item.tagline}</p>
-                </div>
-                {item.limited ? (
-                  <span className="absolute right-3 top-3 rounded-pill bg-orange-500 px-2 py-1 font-sans text-2xs font-semibold uppercase tracking-wider text-cream-50">
-                    Limited batch
-                  </span>
-                ) : null}
-              </article>
-            ))}
+            {usingPlaceholders
+              ? PLACEHOLDER_PASTRIES.map((item) => (
+                  <article
+                    key={item.id}
+                    className="group relative overflow-hidden border border-cream-200 bg-cream-50"
+                  >
+                    <div
+                      role="img"
+                      aria-label={`${item.name} — ${item.description}`}
+                      className="aspect-square w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand group-hover:scale-105"
+                      style={heroBackground(images.pastries[item.imageKey])}
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-maroon-700/95 via-maroon-700/60 to-transparent p-4 pt-10">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <h3 className="m-0 font-display text-lg font-medium text-cream-50">
+                          {item.name}
+                        </h3>
+                        <span className="font-display text-sm font-medium text-cream-50/90">
+                          {fmtGBP(item.priceMinor)}
+                        </span>
+                      </div>
+                      <p className="m-0 font-sans text-xs text-cream-50/85">{item.description}</p>
+                    </div>
+                    {item.limited ? (
+                      <span className="absolute right-3 top-3 rounded-pill bg-orange-500 px-2 py-1 font-sans text-2xs font-semibold uppercase tracking-wider text-cream-50">
+                        Limited batch
+                      </span>
+                    ) : null}
+                  </article>
+                ))
+              : pastries.map((item) => {
+                  const isLimited = Array.isArray(item.tags) && item.tags.includes("limited");
+                  return (
+                    <article
+                      key={item.id}
+                      className="group relative overflow-hidden border border-cream-200 bg-cream-50"
+                    >
+                      <div
+                        role="img"
+                        aria-label={item.imageAlt ?? `${item.name} — ${item.description ?? ""}`}
+                        className="aspect-square w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand group-hover:scale-105"
+                        style={
+                          item.imageUrl
+                            ? heroBackground(item.imageUrl)
+                            : { background: "linear-gradient(135deg,#ECA068,#5C1F18)" }
+                        }
+                      />
+
+                      {/* Top-right: add-to-cart trigger. Stays compact and
+                          floats over the image so the price stays legible. */}
+                      <AddToCartButton
+                        pastryItemId={item.id}
+                        itemName={item.name}
+                        isAuthed={isAuthed}
+                      />
+
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-maroon-700/95 via-maroon-700/60 to-transparent p-4 pt-10">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <h3 className="m-0 font-display text-lg font-medium text-cream-50">
+                            {item.name}
+                          </h3>
+                          <span className="font-display text-sm font-medium text-cream-50/90">
+                            {fmtGBP(item.priceMinor, item.currency)}
+                          </span>
+                        </div>
+                        {item.description ? (
+                          <p className="m-0 font-sans text-xs text-cream-50/85">
+                            {item.description}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      {isLimited ? (
+                        <span className="absolute left-3 top-3 rounded-pill bg-orange-500 px-2 py-1 font-sans text-2xs font-semibold uppercase tracking-wider text-cream-50">
+                          Limited batch
+                        </span>
+                      ) : null}
+                    </article>
+                  );
+                })}
           </div>
 
           <p className="mt-6 max-w-prose font-sans text-xs italic text-neutral-500">
-            Photography shown is illustrative — final product photography lands shortly. Menu
-            availability rotates seasonally and based on batch capacity.
+            {usingPlaceholders
+              ? "Menu coming soon — these are illustrative placeholders. Once the founder publishes real items, prices and availability update live."
+              : "Menu availability rotates seasonally and based on batch capacity. Add items to your cart to apply Indulgence Credits at checkout (Phase B)."}
           </p>
         </div>
       </section>

@@ -54,17 +54,18 @@ const STATUS_VARIANT: Record<string, "orange" | "neutral" | "success" | "maroon"
 export default async function AdminOrdersList({
   searchParams,
 }: {
-  searchParams: { status?: string; q?: string; page?: string };
+  searchParams: Promise<{ status?: string; q?: string; page?: string }>;
 }) {
+  const { status, q, page } = await searchParams;
   const cookieHeader = (await cookies()).toString();
   const limit = 25;
-  const offset = (Number(searchParams.page ?? "1") - 1) * limit;
+  const offset = (Number(page ?? "1") - 1) * limit;
 
   const qs = new URLSearchParams();
   qs.set("limit", String(limit));
   qs.set("offset", String(offset));
-  if (searchParams.status) qs.set("status", searchParams.status);
-  if (searchParams.q) qs.set("q", searchParams.q);
+  if (status) qs.set("status", status);
+  if (q) qs.set("q", q);
 
   let data: ListResponse | null = null;
   let error: string | null = null;
@@ -88,7 +89,7 @@ export default async function AdminOrdersList({
           Status
           <select
             name="status"
-            defaultValue={searchParams.status ?? ""}
+            defaultValue={status ?? ""}
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           >
             <option value="">All</option>
@@ -103,7 +104,7 @@ export default async function AdminOrdersList({
           Search
           <input
             name="q"
-            defaultValue={searchParams.q ?? ""}
+            defaultValue={q ?? ""}
             placeholder="Reference, name, email…"
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           />

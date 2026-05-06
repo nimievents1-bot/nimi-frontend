@@ -48,8 +48,9 @@ const STATUS_VARIANT: Record<string, "orange" | "neutral" | "success" | "maroon"
 export default async function SubscriptionPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }) {
+  const { status } = await searchParams;
   const cookieHeader = (await cookies()).toString();
 
   let state: SubscriptionState | null = null;
@@ -76,7 +77,7 @@ export default async function SubscriptionPage({
         The Indulgence Club
       </h1>
 
-      {searchParams.status === "subscribed" ? (
+      {status === "subscribed" ? (
         <Alert variant="success" className="mb-6">
           Welcome to The Nimi Indulgence Club — your first month&rsquo;s Indulgence Credits will
           land on your next billing cycle.

@@ -11,11 +11,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { next?: string; status?: string };
+  searchParams: Promise<{ next?: string; status?: string }>;
 }) {
+  const { next, status } = await searchParams;
   return (
     <AuthShell
       eyebrow="Welcome back"
@@ -27,7 +28,7 @@ export default function LoginPage({
       }}
     >
       <Suspense fallback={null}>
-        <LoginForm next={searchParams.next} status={searchParams.status} />
+        <LoginForm next={next} status={status} />
       </Suspense>
     </AuthShell>
   );

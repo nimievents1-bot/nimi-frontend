@@ -43,10 +43,11 @@ interface Collection {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  const { slug } = await params;
   try {
-    const c = await apiFetch<Collection>(`/gifting/collections/${params.slug}`, {
+    const c = await apiFetch<Collection>(`/gifting/collections/${slug}`, {
       method: "GET",
       next: { revalidate: 60 },
       throwOnError: true,
@@ -60,12 +61,13 @@ export async function generateMetadata({
   }
 }
 
-export default async function GiftCollectionPage({ params }: { params: { slug: string } }) {
+export default async function GiftCollectionPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   let c: Collection;
   try {
-    c = await apiFetch<Collection>(`/gifting/collections/${params.slug}`, {
+    c = await apiFetch<Collection>(`/gifting/collections/${slug}`, {
       method: "GET",
-      next: { revalidate: 60, tags: [`gift-collection:${params.slug}`] },
+      next: { revalidate: 60, tags: [`gift-collection:${slug}`] },
       throwOnError: true,
     });
   } catch (err) {

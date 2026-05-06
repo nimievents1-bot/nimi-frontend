@@ -19,11 +19,12 @@ interface PageProps {
   // Next.js App Router exposes URL query params via the `searchParams` prop.
   // Anything the user types into the URL bar reaches us as a string|string[],
   // so we narrow to a known tier slug before forwarding to the form.
-  searchParams?: { tier?: string };
+  searchParams?: Promise<{ tier?: string }>;
 }
 
-export default function CateringBookingPage({ searchParams }: PageProps) {
-  const raw = searchParams?.tier;
+export default async function CateringBookingPage({ searchParams }: PageProps) {
+  const resolved = searchParams ? await searchParams : undefined;
+  const raw = resolved?.tier;
   const initialTier = raw && VALID_TIERS.has(raw as ServiceStyleSlug)
     ? (raw as ServiceStyleSlug)
     : undefined;

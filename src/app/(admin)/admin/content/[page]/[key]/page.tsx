@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 import { ContentEditor } from "./ContentEditor";
 
@@ -26,22 +26,39 @@ export default async function AdminContentEditPage({
   params,
   searchParams,
 }: {
-  params: { page: string; key: string };
-  searchParams: { locale?: string };
+  params: Promise<{ page: string; key: string }>;
+  searchParams: Promise<{ locale?: string }>;
 }) {
-  const locale = searchParams.locale ?? "en";
+  const { page, key } = await params;
+  const { locale: localeParam } = await searchParams;
+  const locale = localeParam ?? "en";
   const cookieHeader = (await cookies()).toString();
 
+  // Distinguish a real 404 (the block hasn't been drafted yet — call
+  // `notFound()`) from a transient API failure (network, 5xx, expired
+  // cookie). The earlier behaviour collapsed all errors into 404, which
+  // hid genuine outages and confused operators.
   let block: ContentBlockRow | null = null;
+  let fetchError: string | null = null;
   try {
     block = await apiFetch<ContentBlockRow>(
-      `/content/admin/latest/${params.page}/${params.key}?locale=${locale}`,
+      `/content/admin/latest/${page}/${key}?locale=${locale}`,
       { method: "GET", headers: { Cookie: cookieHeader }, cache: "no-store" },
     );
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      notFound();
+    }
+    fetchError = err instanceof Error ? err.message : "Failed to load block.";
   }
 
+  if (fetchError) {
+    return (
+      <Alert variant="danger" className="mt-6">
+        Couldn&rsquo;t load this block: {fetchError}
+      </Alert>
+    );
+  }
   if (!block) notFound();
 
   const isPublished = Boolean(block.publishedAt);

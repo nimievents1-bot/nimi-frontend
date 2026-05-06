@@ -12,11 +12,12 @@ export const metadata: Metadata = {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }) {
   const user = await requireSessionUser();
 
-  const showWelcome = searchParams.status === "welcome";
+  const { status } = await searchParams;
+  const showWelcome = status === "welcome";
   const verifyPending = !user.emailVerifiedAt;
 
   return (

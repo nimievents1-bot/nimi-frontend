@@ -29,9 +29,9 @@ interface OrderSummary {
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams: { ref?: string };
+  searchParams: Promise<{ ref?: string }>;
 }) {
-  const ref = searchParams.ref;
+  const { ref } = await searchParams;
   if (!ref) {
     return (
       <AuthShell title="Missing order reference" eyebrow="Order">

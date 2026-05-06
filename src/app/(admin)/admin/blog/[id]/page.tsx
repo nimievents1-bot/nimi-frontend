@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 import { PostEditor } from "./PostEditor";
 
@@ -33,18 +34,33 @@ const STATUS_VARIANT: Record<AdminPost["status"], "orange" | "neutral" | "succes
   PUBLISHED: "success",
 };
 
-export default async function AdminBlogEdit({ params }: { params: { id: string } }) {
+export default async function AdminBlogEdit({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const cookieHeader = (await cookies()).toString();
 
+  // Distinguish a real 404 (post id doesn't exist) from a transient API
+  // failure so an outage doesn't masquerade as a missing post.
   let post: AdminPost | null = null;
+  let fetchError: string | null = null;
   try {
-    post = await apiFetch<AdminPost>(`/admin/blog/posts/${params.id}`, {
+    post = await apiFetch<AdminPost>(`/admin/blog/posts/${id}`, {
       method: "GET",
       headers: { Cookie: cookieHeader },
       cache: "no-store",
     });
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      notFound();
+    }
+    fetchError = err instanceof Error ? err.message : "Failed to load post.";
+  }
+
+  if (fetchError) {
+    return (
+      <Alert variant="danger" className="mt-6">
+        Couldn&rsquo;t load this post: {fetchError}
+      </Alert>
+    );
   }
   if (!post) notFound();
 

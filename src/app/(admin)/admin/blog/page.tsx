@@ -36,13 +36,14 @@ const STATUS_VARIANT: Record<PostRow["status"], "orange" | "neutral" | "success"
 export default async function AdminBlogList({
   searchParams,
 }: {
-  searchParams: { status?: string; q?: string };
+  searchParams: Promise<{ status?: string; q?: string }>;
 }) {
+  const { status, q } = await searchParams;
   const cookieHeader = (await cookies()).toString();
 
   const qs = new URLSearchParams();
-  if (searchParams.status) qs.set("status", searchParams.status);
-  if (searchParams.q) qs.set("q", searchParams.q);
+  if (status) qs.set("status", status);
+  if (q) qs.set("q", q);
   qs.set("limit", "100");
 
   let data: ListResponse | null = null;
@@ -67,7 +68,7 @@ export default async function AdminBlogList({
           Status
           <select
             name="status"
-            defaultValue={searchParams.status ?? ""}
+            defaultValue={status ?? ""}
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           >
             <option value="">All</option>
@@ -80,7 +81,7 @@ export default async function AdminBlogList({
           Search
           <input
             name="q"
-            defaultValue={searchParams.q ?? ""}
+            defaultValue={q ?? ""}
             placeholder="Title, excerpt, slug…"
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           />

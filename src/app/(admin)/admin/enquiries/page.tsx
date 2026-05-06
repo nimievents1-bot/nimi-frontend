@@ -42,18 +42,19 @@ const statusVariant: Record<EnquiryRow["status"], "orange" | "neutral" | "succes
 export default async function AdminEnquiriesList({
   searchParams,
 }: {
-  searchParams: { status?: string; kind?: string; q?: string; page?: string };
+  searchParams: Promise<{ status?: string; kind?: string; q?: string; page?: string }>;
 }) {
+  const { status, kind, q, page } = await searchParams;
   const cookieHeader = (await cookies()).toString();
   const limit = 25;
-  const offset = (Number(searchParams.page ?? "1") - 1) * limit;
+  const offset = (Number(page ?? "1") - 1) * limit;
 
   const qs = new URLSearchParams();
   qs.set("limit", String(limit));
   qs.set("offset", String(offset));
-  if (searchParams.status) qs.set("status", searchParams.status);
-  if (searchParams.kind) qs.set("kind", searchParams.kind);
-  if (searchParams.q) qs.set("q", searchParams.q);
+  if (status) qs.set("status", status);
+  if (kind) qs.set("kind", kind);
+  if (q) qs.set("q", q);
 
   let data: ListResponse | null = null;
   let error: string | null = null;
@@ -82,7 +83,7 @@ export default async function AdminEnquiriesList({
           Status
           <select
             name="status"
-            defaultValue={searchParams.status ?? ""}
+            defaultValue={status ?? ""}
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           >
             <option value="">All</option>
@@ -97,7 +98,7 @@ export default async function AdminEnquiriesList({
           Kind
           <select
             name="kind"
-            defaultValue={searchParams.kind ?? ""}
+            defaultValue={kind ?? ""}
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           >
             <option value="">All</option>
@@ -112,7 +113,7 @@ export default async function AdminEnquiriesList({
           Search
           <input
             name="q"
-            defaultValue={searchParams.q ?? ""}
+            defaultValue={q ?? ""}
             placeholder="Name, email, body…"
             className="border border-cream-200 bg-paper px-3 py-2 font-sans text-sm"
           />
@@ -187,7 +188,7 @@ export default async function AdminEnquiriesList({
           <div className="flex gap-2">
             {currentPage > 1 ? (
               <Link
-                href={`/admin/enquiries?${prevPageQuery(searchParams, currentPage - 1)}`}
+                href={`/admin/enquiries?${prevPageQuery({ status, kind, q }, currentPage - 1)}`}
                 className="border border-cream-200 px-3 py-1.5 hover:bg-cream-100"
               >
                 ← Newer
@@ -195,7 +196,7 @@ export default async function AdminEnquiriesList({
             ) : null}
             {currentPage < totalPages ? (
               <Link
-                href={`/admin/enquiries?${prevPageQuery(searchParams, currentPage + 1)}`}
+                href={`/admin/enquiries?${prevPageQuery({ status, kind, q }, currentPage + 1)}`}
                 className="border border-cream-200 px-3 py-1.5 hover:bg-cream-100"
               >
                 Older →
