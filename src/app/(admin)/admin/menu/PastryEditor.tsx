@@ -70,11 +70,59 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
   const [displayOrder, setDisplayOrder] = useState<string>(
     row ? String(row.displayOrder) : "0",
   );
-  const [available, setAvailable] = useState<boolean>(row?.available ?? false);
+  // Default to available: true on create so the founder doesn't have to
+  // tick a second box to make their item visible. On edit, preserve the
+  // existing visibility state.
+  const [available, setAvailable] = useState<boolean>(
+    mode === "create" ? true : row?.available ?? false,
+  );
 
   const [pending, setPending] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  /**
+   * Upload a file from the local device to the Vercel Blob bucket via
+   * our `/api/upload/image` route, then plug the returned URL into the
+   * `imageUrl` field. Failure surfaces inline; the URL field stays
+   * editable so admin can paste a fallback URL if the upload errors.
+   */
+  const onFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !data.url) {
+        throw new Error(data.error ?? "Upload failed.");
+      }
+      setImageUrl(data.url);
+      // Pre-fill alt text with the original filename if alt is empty,
+      // so screen-readers and the cravings page have something useful
+      // before the admin types a real description.
+      if (!imageAlt.trim()) {
+        const niceName = file.name
+          .replace(/\.[^.]+$/, "")
+          .replace(/[-_]+/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        setImageAlt(niceName);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+      // Reset the file input so re-selecting the same file fires `onChange` again.
+      e.target.value = "";
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,20 +297,80 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
         </label>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
-        <label className="flex flex-col gap-1">
-          <span className="font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
-            Image URL (R2 / Unsplash / etc.)
-          </span>
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://…"
-            className={fieldClass}
-          />
-        </label>
-        <label className="flex flex-col gap-1">
+      {/*
+        Image: file picker (uploads to Vercel Blob) + URL field + alt text.
+        Preview is shown when a URL is set so the admin sees what the
+        customer will see. Clearing the URL field reverts to the brand
+        gradient on the public page.
+      */}
+      <fieldset className="space-y-3">
+        <legend className="mb-2 font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
+          Image
+        </legend>
+
+        <div className="flex flex-wrap items-start gap-4">
+          {imageUrl ? (
+            <div
+              role="img"
+              aria-label={imageAlt || "Image preview"}
+              className="aspect-square w-32 flex-none border border-cream-200 bg-cream-100"
+              style={{
+                backgroundImage: `url("${imageUrl}")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+          ) : (
+            <div
+              aria-hidden
+              className="flex aspect-square w-32 flex-none items-center justify-center border border-dashed border-cream-200 bg-cream-100 font-sans text-xs text-neutral-500"
+            >
+              No image
+            </div>
+          )}
+
+          <div className="flex-1 space-y-2">
+            <label className="inline-flex cursor-pointer items-center gap-3 border border-cream-200 bg-cream-50 px-4 py-2 font-display text-base italic text-maroon-700 hover:border-orange-200 hover:bg-orange-50">
+              <span>{uploading ? "Uploading…" : "Upload from device"}</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/avif"
+                onChange={(e) => void onFileSelected(e)}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+            <p className="m-0 font-sans text-xs text-neutral-500">
+              PNG, JPG, WebP or AVIF up to 5 MB. Stored privately, served publicly.
+            </p>
+
+            <label className="block pt-2 font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
+              Or paste an image URL
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://…"
+                className={`${fieldClass} mt-1`}
+              />
+            </label>
+
+            {imageUrl ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setImageUrl("");
+                  setImageAlt("");
+                }}
+                className="font-display text-sm italic text-orange-700 underline underline-offset-4 hover:text-orange-800"
+              >
+                Remove image
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <label className="flex flex-col gap-1 pt-2">
           <span className="font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
             Image alt text
           </span>
@@ -271,10 +379,11 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
             maxLength={160}
             value={imageAlt}
             onChange={(e) => setImageAlt(e.target.value)}
+            placeholder="Short description of the image — used by screen readers"
             className={fieldClass}
           />
         </label>
-      </div>
+      </fieldset>
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="flex flex-col gap-1">

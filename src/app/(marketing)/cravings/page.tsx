@@ -27,32 +27,6 @@ interface PublicPastry {
   leadTimeDays: number;
 }
 
-/**
- * Stand-in pastries used when the API has no items published yet (or is
- * unreachable). These map onto the `images.pastries.*` slots so the page
- * is never blank during the soft-launch window. As soon as the founder
- * publishes real items in /admin/menu, this list stops rendering.
- */
-const PLACEHOLDER_PASTRIES: ReadonlyArray<{
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  priceMinor: number;
-  imageKey: keyof typeof images.pastries;
-  limited?: boolean;
-}> = [
-  { id: "p-1", slug: "meat-pie", name: "Meat Pie", description: "Buttery shortcrust, peppered beef.", priceMinor: 500, imageKey: "meatPie" },
-  { id: "p-2", slug: "chicken-pie", name: "Chicken Pie", description: "Soft pastry, herbed chicken.", priceMinor: 500, imageKey: "chickenPie" },
-  { id: "p-3", slug: "egg-roll", name: "Egg Rolls", description: "Boiled egg, sausage-style dough.", priceMinor: 400, imageKey: "eggRoll" },
-  { id: "p-4", slug: "fish-pie", name: "Fish Pie", description: "Smoked fish, scotch-bonnet warmth.", priceMinor: 550, imageKey: "fishPie" },
-  { id: "p-5", slug: "puff-puff", name: "Puff Puff", description: "Pillowy fried dough, glossy with sugar.", priceMinor: 350, imageKey: "puffPuff" },
-  { id: "p-6", slug: "zobo", name: "Zobo", description: "Hibiscus, ginger, citrus — chilled.", priceMinor: 400, imageKey: "zobo" },
-  { id: "p-7", slug: "chicken-shawarma", name: "Chicken Shawarma", description: "Spiced chicken, garlic sauce, pickles.", priceMinor: 1200, imageKey: "chickenShawarma" },
-  { id: "p-8", slug: "asun-shawarma", name: "Asun Shawarma", description: "Smoked goat asun, peppered hot.", priceMinor: 1400, imageKey: "asunShawarma", limited: true },
-  { id: "p-9", slug: "combo-shawarma", name: "Combo Shawarma", description: "Asun and chicken in one wrap.", priceMinor: 1500, imageKey: "comboShawarma" },
-];
-
 const fmtGBP = (minor: number, currency = "gbp") =>
   new Intl.NumberFormat("en-GB", {
     style: "currency",
@@ -153,8 +127,11 @@ export default async function IndulgenceClubPage() {
     plans = FALLBACK_PLANS;
   }
 
-  // Live pastry catalog. Falls back to the curated placeholder set when
-  // the API is unreachable OR returns zero items (pre-launch state).
+  // Live pastry catalog from the admin-managed menu. The customer-facing
+  // page used to render a curated placeholder set when the API returned
+  // zero items, but admin can now publish the catalog themselves — so an
+  // empty state ("Menu coming soon") is the right behaviour, not fake
+  // data. Errors fall back to empty as well; the page never crashes.
   let pastries: PublicPastry[] = [];
   try {
     const response = await apiFetch<{ rows: PublicPastry[]; total: number }>(
@@ -167,9 +144,8 @@ export default async function IndulgenceClubPage() {
     );
     pastries = response.rows;
   } catch {
-    // Silent fall-through — placeholder is rendered below.
+    // Silent fall-through to empty state.
   }
-  const usingPlaceholders = pastries.length === 0;
 
   return (
     <>
@@ -267,39 +243,18 @@ export default async function IndulgenceClubPage() {
             ready to collect or dispatched cold-chain. Minimum order £25 per drop.
           </p>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3">
-            {usingPlaceholders
-              ? PLACEHOLDER_PASTRIES.map((item) => (
-                  <article
-                    key={item.id}
-                    className="group relative overflow-hidden border border-cream-200 bg-cream-50"
-                  >
-                    <div
-                      role="img"
-                      aria-label={`${item.name} — ${item.description}`}
-                      className="aspect-square w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand group-hover:scale-105"
-                      style={heroBackground(images.pastries[item.imageKey])}
-                    />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-maroon-700/95 via-maroon-700/60 to-transparent p-4 pt-10">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <h3 className="m-0 font-display text-lg font-medium text-cream-50">
-                          {item.name}
-                        </h3>
-                        <span className="font-display text-sm font-medium text-cream-50/90">
-                          {fmtGBP(item.priceMinor)}
-                        </span>
-                      </div>
-                      <p className="m-0 font-sans text-xs text-cream-50/85">{item.description}</p>
-                    </div>
-                    {item.limited ? (
-                      <span className="absolute right-3 top-3 rounded-pill bg-orange-500 px-2 py-1 font-sans text-2xs font-semibold uppercase tracking-wider text-cream-50">
-                        Limited batch
-                      </span>
-                    ) : null}
-                  </article>
-                ))
-              : pastries.map((item) => {
-                  const isLimited = Array.isArray(item.tags) && item.tags.includes("limited");
+          {pastries.length === 0 ? (
+            <div className="border border-dashed border-cream-200 bg-paper p-10 text-center">
+              <p className="m-0 font-sans text-base text-neutral-700">
+                Menu coming soon. Check back shortly — fresh items drop regularly.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3">
+                {pastries.map((item) => {
+                  const isLimited =
+                    Array.isArray(item.tags) && item.tags.includes("limited");
                   return (
                     <article
                       key={item.id}
@@ -307,7 +262,9 @@ export default async function IndulgenceClubPage() {
                     >
                       <div
                         role="img"
-                        aria-label={item.imageAlt ?? `${item.name} — ${item.description ?? ""}`}
+                        aria-label={
+                          item.imageAlt ?? `${item.name} — ${item.description ?? ""}`
+                        }
                         className="aspect-square w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand group-hover:scale-105"
                         style={
                           item.imageUrl
@@ -348,13 +305,14 @@ export default async function IndulgenceClubPage() {
                     </article>
                   );
                 })}
-          </div>
+              </div>
 
-          <p className="mt-6 max-w-prose font-sans text-xs italic text-neutral-500">
-            {usingPlaceholders
-              ? "Menu coming soon — these are illustrative placeholders. Once the founder publishes real items, prices and availability update live."
-              : "Menu availability rotates seasonally and based on batch capacity. Add items to your cart to apply Indulgence Credits at checkout (Phase B)."}
-          </p>
+              <p className="mt-6 max-w-prose font-sans text-xs italic text-neutral-500">
+                Menu availability rotates seasonally and based on batch capacity. Add
+                items to your cart to apply Indulgence Credits at checkout.
+              </p>
+            </>
+          )}
         </div>
       </section>
 
