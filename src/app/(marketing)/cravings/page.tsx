@@ -46,34 +46,16 @@ interface PublicPlan {
   monthlyAmountMinor: number;
   currency: string;
   position: number;
+  /**
+   * False when the plan exists in the DB but doesn't yet have a Stripe
+   * Price ID. The grid renders these as disabled "Coming soon" cards
+   * rather than clickable "Join the club" CTAs — otherwise the API
+   * would 503 on subscribe and a customer would think the club is
+   * broken. Server seeds tiers without Stripe wiring; the admin
+   * publishes via the upsert endpoint to flip this true.
+   */
+  stripeReady?: boolean;
 }
-
-const FALLBACK_PLANS: PublicPlan[] = [
-  {
-    slug: "cravings-25",
-    name: "£25 / month",
-    description: "A weekly treat — perfect for individuals.",
-    monthlyAmountMinor: 2500,
-    currency: "gbp",
-    position: 1,
-  },
-  {
-    slug: "cravings-50",
-    name: "£50 / month",
-    description: "The sweet spot for households and small offices.",
-    monthlyAmountMinor: 5000,
-    currency: "gbp",
-    position: 2,
-  },
-  {
-    slug: "cravings-100",
-    name: "£100 / month",
-    description: "For frequent celebrations and bigger teams.",
-    monthlyAmountMinor: 10000,
-    currency: "gbp",
-    position: 3,
-  },
-];
 
 const benefits: ReadonlyArray<{ title: string; description: string }> = [
   {
@@ -115,6 +97,12 @@ export default async function IndulgenceClubPage() {
   const user = await getSessionUser();
   const isAuthed = Boolean(user);
 
+  // Plans live in the database — the API seeds three defaults on first
+  // boot. We deliberately do NOT fall back to a hardcoded set when the
+  // fetch fails or returns empty: doing so used to surface clickable
+  // tiers whose slugs didn't exist server-side, producing a "Not Found"
+  // error on Join. An honest empty state ("Coming soon") is much better
+  // than a button that 404s.
   let plans: PublicPlan[] = [];
   try {
     plans = await apiFetch<PublicPlan[]>("/cravings/plans", {
@@ -122,9 +110,8 @@ export default async function IndulgenceClubPage() {
       next: { revalidate: 60, tags: ["cravings-plans"] },
       throwOnError: true,
     });
-    if (plans.length === 0) plans = FALLBACK_PLANS;
   } catch {
-    plans = FALLBACK_PLANS;
+    // Leaves `plans` empty — the PlanGrid renders the empty-state copy.
   }
 
   // Live pastry catalog from the admin-managed menu. The customer-facing

@@ -19,6 +19,8 @@ interface PublicPlan {
   monthlyAmountMinor: number;
   currency: string;
   position: number;
+  /** API returns this; when false the tier is shown disabled with "Coming soon". */
+  stripeReady?: boolean;
 }
 
 interface Props {
@@ -56,6 +58,25 @@ export function PlanGrid({ plans }: Props) {
     }
   };
 
+  // When the API returns zero plans (table not seeded yet, or every tier
+  // hidden by the admin) we show an honest "coming soon" panel instead
+  // of a clickable card whose Join action would 404 / 503. This mirrors
+  // the server-side behaviour after the fallback-data removal.
+  if (plans.length === 0) {
+    return (
+      <div className="border border-dashed border-cream-200 bg-paper px-6 py-10 text-center">
+        <p className="m-0 mb-2 font-display text-2xl text-maroon-600">
+          The Indulgence Club is opening soon.
+        </p>
+        <p className="m-0 max-w-prose font-sans text-base text-neutral-700 mx-auto">
+          Tiers are getting their final touches. Subscribe to the newsletter — or
+          reach out via the contact form — and we&rsquo;ll let you know the moment
+          membership opens.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       {error ? (
@@ -66,6 +87,7 @@ export function PlanGrid({ plans }: Props) {
       <div className="grid gap-6 md:grid-cols-3">
         {plans.map((p, i) => {
           const flagship = i === 1; // middle plan emphasised
+          const ready = p.stripeReady !== false; // undefined → assume true (backwards-compat)
           const fmt = new Intl.NumberFormat("en-GB", {
             style: "currency",
             currency: p.currency.toUpperCase(),
@@ -82,14 +104,24 @@ export function PlanGrid({ plans }: Props) {
               <div className="mb-4 flex flex-wrap gap-2">
                 <Tag>3-mo minimum</Tag>
                 <Tag>Credits valid 3 mo</Tag>
+                {!ready ? <Tag variant="orange">Coming soon</Tag> : null}
               </div>
               <Button
                 variant={flagship ? "primary" : "secondary"}
                 size="sm"
                 onClick={() => void subscribe(p.slug)}
-                disabled={pending !== null}
+                disabled={pending !== null || !ready}
+                title={
+                  !ready
+                    ? "This tier is being finalised — checkout opens once the admin connects it to Stripe."
+                    : undefined
+                }
               >
-                {pending === p.slug ? "Redirecting…" : "Join the club"}
+                {!ready
+                  ? "Coming soon"
+                  : pending === p.slug
+                  ? "Redirecting…"
+                  : "Join the club"}
               </Button>
             </Card>
           );
