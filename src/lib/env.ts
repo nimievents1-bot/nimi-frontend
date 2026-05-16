@@ -40,6 +40,18 @@ const ServerSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   INTERNAL_API_URL: z.string().url().default(FALLBACK_API_URL),
   SENTRY_DSN: z.string().optional(),
+
+  // ---- Cloudflare R2 (image uploads) ----
+  // Optional at validation time so a local dev environment without R2
+  // credentials can still boot. The /api/upload/image route checks for
+  // their presence at request time and returns a clear 500 if any are
+  // missing — better than crashing the entire app at module load.
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  /** Public base URL for uploaded objects (either r2.dev subdomain or a custom domain). No trailing slash. */
+  R2_PUBLIC_URL: z.string().url().optional(),
 });
 
 const ClientSchema = z.object({
@@ -72,6 +84,11 @@ export function serverEnv(): ServerEnv {
     NODE_ENV: process.env.NODE_ENV,
     INTERNAL_API_URL: process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL,
     SENTRY_DSN: process.env.SENTRY_DSN,
+    R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+    R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+    R2_BUCKET: process.env.R2_BUCKET,
+    R2_PUBLIC_URL: process.env.R2_PUBLIC_URL?.replace(/\/+$/, ""),
   });
 
   if (!parsed.success) {
