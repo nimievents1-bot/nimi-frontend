@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useConfirm } from "@/components/patterns/ConfirmDialog";
 import { Alert } from "@/components/primitives/Alert";
 import { Button } from "@/components/primitives/Button";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -45,6 +46,7 @@ const TERMINAL = new Set<PastryOrderDetail["status"]>(["DELIVERED", "CANCELLED",
  */
 export function PastryOrderActions({ reference, status, internalNotes }: PastryOrderActionsProps) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -69,9 +71,13 @@ export function PastryOrderActions({ reference, status, internalNotes }: PastryO
   };
 
   const cancel = async () => {
-    const confirmed = window.confirm(
-      "Cancel this order? The customer will be emailed and credits returned to their balance.",
-    );
+    const confirmed = await confirm({
+      title: `Cancel order ${reference}?`,
+      description: "The customer will be emailed automatically and any Indulgence Credits applied to this order will be returned to their balance. Refunds for the card payment must be issued separately in Stripe.",
+      confirmLabel: "Cancel order",
+      cancelLabel: "Keep order",
+      variant: "danger",
+    });
     if (!confirmed) return;
     await transition("CANCELLED");
   };

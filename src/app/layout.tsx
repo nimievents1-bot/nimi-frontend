@@ -3,6 +3,7 @@ import "./globals.css";
 import { type Metadata, type Viewport } from "next";
 import { Cormorant_Garamond, Mulish } from "next/font/google";
 
+import { ConfirmProvider } from "@/components/patterns/ConfirmDialog";
 import { clientEnv } from "@/lib/env";
 
 /**
@@ -66,7 +67,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/*
+         * ConfirmProvider mounts a single shared modal dialog at the
+         * root, so `useConfirm()` is callable from any component in any
+         * route group (marketing, account, admin). Render position
+         * matters only for portal containment — the provider does not
+         * inject layout chrome.
+         */}
+        <ConfirmProvider>{children}</ConfirmProvider>
+      </body>
     </html>
   );
 }

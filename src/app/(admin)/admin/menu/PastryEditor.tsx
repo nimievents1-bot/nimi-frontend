@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useConfirm } from "@/components/patterns/ConfirmDialog";
 import { Alert } from "@/components/primitives/Alert";
 import { Button } from "@/components/primitives/Button";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -49,6 +50,7 @@ const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
  */
 export function PastryEditor({ mode, row }: PastryEditorProps) {
   const router = useRouter();
+  const confirm = useConfirm();
 
   const [slug, setSlug] = useState(row?.slug ?? "");
   const [name, setName] = useState(row?.name ?? "");
@@ -185,9 +187,13 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
 
   const onDelete = async () => {
     if (!row) return;
-    const confirmed = window.confirm(
-      `Delete "${row.name}"? This removes it from the menu permanently.`,
-    );
+    const confirmed = await confirm({
+      title: `Delete "${row.name}"?`,
+      description: "This removes it from the menu permanently. Customers will no longer see it on /cravings, and the slug becomes unavailable.",
+      confirmLabel: "Delete",
+      cancelLabel: "Keep it",
+      variant: "danger",
+    });
     if (!confirmed) return;
     setError(null);
     setPending(true);

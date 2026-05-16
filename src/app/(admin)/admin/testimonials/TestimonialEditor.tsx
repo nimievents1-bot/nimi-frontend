@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useConfirm } from "@/components/patterns/ConfirmDialog";
 import { Alert } from "@/components/primitives/Alert";
 import { Button } from "@/components/primitives/Button";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -42,6 +43,7 @@ interface TestimonialEditorProps {
  */
 export function TestimonialEditor({ mode, row }: TestimonialEditorProps) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [authorName, setAuthorName] = useState(row?.authorName ?? "");
   const [role, setRole] = useState(row?.role ?? "");
   const [body, setBody] = useState(row?.body ?? "");
@@ -102,9 +104,13 @@ export function TestimonialEditor({ mode, row }: TestimonialEditorProps) {
 
   const onDelete = async () => {
     if (!row) return;
-    const confirmed = window.confirm(
-      `Delete the testimonial from "${row.authorName}"? This can't be undone.`,
-    );
+    const confirmed = await confirm({
+      title: `Delete the testimonial from "${row.authorName}"?`,
+      description: "This can't be undone. The quote will disappear from the marketing site immediately.",
+      confirmLabel: "Delete",
+      cancelLabel: "Keep it",
+      variant: "danger",
+    });
     if (!confirmed) return;
     setError(null);
     setPending(true);
