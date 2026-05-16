@@ -1,22 +1,46 @@
 import { type Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { Alert } from "@/components/primitives/Alert";
 import { Card } from "@/components/patterns/Card";
-import { requireSessionUser } from "@/lib/auth";
+import { requireSessionUser, type Role } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Account",
   robots: { index: false, follow: false },
 };
 
+/**
+ * Roles that should land on the admin dashboard rather than the customer
+ * account overview. Kept in sync with the client-side default in
+ * `app/(auth)/login/LoginForm.tsx` and the server-side guards on
+ * `/admin/*` pages.
+ *
+ * Note: SUPPORT is included here even though it doesn't currently have
+ * a presence on the admin sidebar — the role is reserved for future use
+ * and we'd rather not send them to a customer overview by accident.
+ */
+const isStaffRole = (role: Role): boolean =>
+  role === "OWNER" || role === "EDITOR" || role === "SUPPORT";
+
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; as?: string }>;
 }) {
   const user = await requireSessionUser();
+  const { status, as } = await searchParams;
 
-  const { status } = await searchParams;
+  // Staff who land here through any route — login fallback, bookmark,
+  // direct URL, post-MFA — are bumped to the admin dashboard. An owner
+  // who deliberately wants the customer view can pass `?as=customer` to
+  // bypass this (e.g. for testing a customer-facing change). This escape
+  // hatch is intentionally undocumented in the UI to discourage habitual
+  // use; it exists so we don't lock ourselves out of the customer view.
+  if (isStaffRole(user.role) && as !== "customer") {
+    redirect("/admin");
+  }
+
   const showWelcome = status === "welcome";
   const verifyPending = !user.emailVerifiedAt;
 

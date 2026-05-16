@@ -23,6 +23,22 @@ interface LoginFormProps {
   status?: string | undefined;
 }
 
+type LoginRole = "CUSTOMER" | "EDITOR" | "SUPPORT" | "OWNER";
+
+/**
+ * Where a successful sign-in should land when the caller didn't pass an
+ * explicit `?next=` deep-link. Staff land on the admin dashboard;
+ * customers land on their account overview.
+ *
+ * Mirrors the server-side guard in `app/(account)/account/page.tsx`,
+ * which redirects staff who arrive at /account through any other path
+ * (bookmark, direct URL, MFA post-verify). Two layers means an
+ * out-of-sync deploy can't ever leave staff stuck on the customer view.
+ */
+const STAFF_ROLES: ReadonlySet<LoginRole> = new Set(["OWNER", "EDITOR", "SUPPORT"]);
+const defaultLandingFor = (role: LoginRole | undefined): string =>
+  role && STAFF_ROLES.has(role) ? "/admin" : "/account";
+
 export function LoginForm({ next, status }: LoginFormProps) {
   const router = useRouter();
   const params = useSearchParams();
@@ -46,19 +62,28 @@ export function LoginForm({ next, status }: LoginFormProps) {
     try {
       const result = await apiFetch<
         | { mfaRequired: true; challengeToken: string }
-        | { mfaRequired?: false; user: { id: string } }
+        | { mfaRequired?: false; user: { id: string; role: LoginRole } }
       >("/auth/login", { method: "POST", body: values });
+
+      // The `next` query-param wins — it preserves the user's intent on
+      // deep-links like /cart-checkout, "Reorder", or any link gated by
+      // the auth wall. Only fall back to a role-based default when the
+      // caller didn't ask for somewhere specific.
+      const explicitNext = next ?? params.get("next");
 
       if ("mfaRequired" in result && result.mfaRequired) {
         // Stash the challenge token in sessionStorage (cleared on tab close)
         // and redirect to the challenge page. Token is short-lived (5 min).
         sessionStorage.setItem("nimi.mfa.challenge", result.challengeToken);
-        const nextDest = next ?? params.get("next") ?? "/account";
+        // Don't try to guess the role here — we haven't verified the code yet.
+        // Default to /account; the server-side guard will bump staff to /admin
+        // after MFA completes and they land on /account.
+        const nextDest = explicitNext ?? "/account";
         router.push(`/mfa-challenge?next=${encodeURIComponent(nextDest)}`);
         return;
       }
 
-      router.push(next ?? params.get("next") ?? "/account");
+      router.push(explicitNext ?? defaultLandingFor(result.user.role));
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
