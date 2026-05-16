@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useConfirm } from "@/components/patterns/ConfirmDialog";
 import { Alert } from "@/components/primitives/Alert";
 import { Button } from "@/components/primitives/Button";
-import { TextField, TextareaField } from "@/components/primitives/Field";
+import { TextareaField } from "@/components/primitives/Field";
 import { ApiError, apiFetch } from "@/lib/api";
 
 /**
