@@ -10,6 +10,7 @@ import { LogoutButton } from "./LogoutButton";
 const ACCOUNT_NAV = [
   { label: "Overview", href: "/account" },
   { label: "Profile", href: "/account/profile" },
+  { label: "Bookings", href: "/account/bookings" },
   { label: "Orders", href: "/account/orders" },
   { label: "Subscription", href: "/account/subscription" },
   { label: "Security", href: "/account/security" },
