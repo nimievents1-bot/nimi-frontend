@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { emitCartUpdated } from "@/components/patterns/CartIndicator";
 import { ApiError, apiFetch } from "@/lib/api";
 
 interface CartActionsProps {
@@ -42,6 +43,7 @@ export function CartActions({
         method: "PATCH",
         body: { quantity: next },
       });
+      emitCartUpdated();
       router.refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Couldn't update.");
@@ -55,6 +57,7 @@ export function CartActions({
     setPending(true);
     try {
       await apiFetch(`/pastry-cart/items/${cartItemId}`, { method: "DELETE" });
+      emitCartUpdated();
       router.refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Couldn't remove.");

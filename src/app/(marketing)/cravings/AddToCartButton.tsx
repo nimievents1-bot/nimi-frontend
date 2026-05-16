@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { emitCartUpdated } from "@/components/patterns/CartIndicator";
 import { ApiError, apiFetch } from "@/lib/api";
 
 interface AddToCartButtonProps {
@@ -41,11 +42,19 @@ export function AddToCartButton({
         method: "POST",
         body: { pastryItemId, quantity: 1 },
       });
-      setFeedback(`Added ${itemName}`);
+      // Two-pronged feedback so the user can't miss that the click took:
+      //   1. The inline pill flips to "Added <name>" for ~2 seconds.
+      //   2. The cart icon in the header re-fetches and the badge ticks
+      //      up — fires via a custom window event so we don't have to
+      //      thread a setter all the way up through the React tree.
+      emitCartUpdated();
+      setFeedback("Added to cart");
       router.refresh();
       // Clear the inline feedback after a short delay so it doesn't linger.
       window.setTimeout(() => setFeedback(null), 2200);
     } catch (err) {
+      // Keep the error message visible until the user clicks again — no
+      // auto-dismiss for failures so they don't wonder what happened.
       setFeedback(err instanceof ApiError ? err.detail : "Couldn't add to cart.");
     } finally {
       setPending(false);

@@ -2,8 +2,10 @@ import Link from "next/link";
 
 import { Wordmark } from "@/components/brand/NimiPotMark";
 import { Stamp } from "@/components/primitives/Stamp";
+import { getSessionUser } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 
+import { CartIndicator } from "./CartIndicator";
 import { MobileMenu } from "./MobileMenu";
 
 interface HeaderProps {
@@ -25,18 +27,33 @@ const navItems = [
 
 /**
  * Site-wide header — wordmark left, letter-spaced uppercase nav middle,
- * persistent italic-serif "Get in Touch" stamp on the right.
+ * cart icon + persistent italic-serif "Get in Touch" stamp on the right.
+ *
+ * Sticky behaviour:
+ *   - The header stays fixed at the top of the viewport on every page.
+ *   - On light pages (default) the cream surface follows the user down
+ *     with a soft backdrop blur — perfectly readable over any content.
+ *   - On the dark hero variant (homepage) the surface is a translucent
+ *     maroon-tinted glass, so the chrome remains legible whether the
+ *     user is still over the hero photograph or has scrolled into the
+ *     cream content below. This deliberately trades the original
+ *     fully-transparent look for cross-section readability.
  *
  * Responsive behaviour:
- *   - Below md (768px): nav and stamp hide; a hamburger trigger replaces them
- *     and opens a full-width slide-down drawer (`MobileMenu`).
- *   - md and up: full editorial nav with the stamp pinned right.
+ *   - Below md (768px): nav and stamp hide; a hamburger trigger replaces
+ *     them and opens a full-width slide-down drawer (`MobileMenu`).
+ *     The cart icon is left visible at all sizes — it's the most
+ *     frequent action on the marketing surface once items are added.
+ *   - md and up: full editorial nav with the cart icon, stamp pinned right.
  *
- * Two surface variants:
- *   - default: cream background, maroon text  (most pages)
- *   - onDark:  transparent over dark hero, cream nav, cream stamp
+ * Server component: reads the session so it can tell the cart indicator
+ * whether the user is authed (anonymous users get an icon that links to
+ * /login?next=/cart instead of poking the protected endpoint).
  */
-export function Header({ onDark = false, current = "" }: HeaderProps) {
+export async function Header({ onDark = false, current = "" }: HeaderProps) {
+  const user = await getSessionUser();
+  const isAuthed = Boolean(user);
+
   const linkBase =
     "font-sans text-[0.8125rem] font-medium uppercase tracking-[0.26em] py-2.5 transition-colors duration-fast ease-brand border-b border-transparent";
   const linkColour = onDark
@@ -44,14 +61,21 @@ export function Header({ onDark = false, current = "" }: HeaderProps) {
     : "text-neutral-800 hover:text-orange-600";
   const activeBorder = onDark ? "border-cream-50" : "border-maroon-600";
 
+  // Sticky surface tokens. The slight transparency + backdrop-blur keeps
+  // the chrome from feeling like a heavy bar — closer to a frosted-glass
+  // strip over the editorial layout below.
+  const surface = onDark
+    ? "bg-maroon-900/55 backdrop-blur supports-[backdrop-filter]:bg-maroon-900/40"
+    : "border-b border-cream-200 bg-cream-50/90 backdrop-blur supports-[backdrop-filter]:bg-cream-50/75";
+
   return (
     <header
       className={cn(
-        "grid items-center gap-4 px-page-gutter py-4 md:gap-8 md:py-5",
-        // Mobile: wordmark left, hamburger right (two columns).
-        // Desktop: wordmark / nav / stamp (three columns).
+        "sticky top-0 z-40 grid items-center gap-4 px-page-gutter py-4 md:gap-8 md:py-5",
+        // Mobile: wordmark left, cart + hamburger right.
+        // Desktop: wordmark / nav / cart + stamp.
         "grid-cols-[1fr_auto] md:grid-cols-[auto_1fr_auto]",
-        onDark ? "" : "border-b border-cream-200 bg-cream-50",
+        surface,
       )}
     >
       <Wordmark withTag onDark={onDark} />
@@ -79,27 +103,15 @@ export function Header({ onDark = false, current = "" }: HeaderProps) {
         })}
       </nav>
 
-      {/* Desktop right column: cart indicator + Get-in-Touch stamp.
-          Cart link stays small so it doesn't compete with the stamp's
-          italic-serif voice — just a brand-toned text link. */}
-      <div className="hidden items-center gap-5 md:flex">
-        <Link
-          href="/cart"
-          aria-label="Open cart"
-          className={cn(
-            "font-display text-base italic transition-colors duration-fast ease-brand",
-            onDark
-              ? "text-cream-50 hover:text-orange-300"
-              : "text-maroon-700 hover:text-orange-700",
-          )}
-        >
-          Cart
-        </Link>
+      {/* Desktop right column: cart icon + Get-in-Touch stamp. */}
+      <div className="hidden items-center gap-4 md:flex">
+        <CartIndicator onDark={onDark} isAuthed={isAuthed} />
         <Stamp onDark={onDark} />
       </div>
 
-      {/* Mobile-only menu trigger and drawer. */}
-      <div className="md:hidden">
+      {/* Mobile-only right cluster: cart icon stays visible, hamburger to its right. */}
+      <div className="flex items-center gap-2 md:hidden">
+        <CartIndicator onDark={onDark} isAuthed={isAuthed} />
         <MobileMenu items={[...navItems, { label: "Cart", href: "/cart" }]} onDark={onDark} />
       </div>
     </header>
