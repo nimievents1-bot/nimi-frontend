@@ -20,11 +20,16 @@ export default async function AccountPage({
   const showWelcome = status === "welcome";
   const verifyPending = !user.emailVerifiedAt;
 
+  // Defensive: if a legacy session-payload arrives without `name`, derive
+  // a sensible greeting from the email rather than crashing the page.
+  // This complements the API-side fallback in jwt.strategy.ts.
+  const greetingName = (user.name?.trim() || user.email.split("@")[0] || "there").split(" ")[0];
+
   return (
     <>
       <p className="eyebrow mb-3">Welcome</p>
       <h1 className="m-0 mb-6 font-display text-5xl font-medium text-maroon-600">
-        Hello, {user.name.split(" ")[0]}.
+        Hello, {greetingName}.
       </h1>
 
       {showWelcome ? (
