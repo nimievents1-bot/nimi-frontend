@@ -1,5 +1,6 @@
 import { type Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
@@ -96,13 +97,23 @@ export default async function AdminCravingsPage() {
 
       {/* ---------- Plans panel ---------- */}
       <section className="mb-10">
-        <h2 className="m-0 mb-2 font-display text-2xl text-maroon-600">Tiers</h2>
-        <p className="mb-4 max-w-prose font-sans text-sm text-neutral-700">
-          The three default tiers seed automatically on first boot. Each one needs to be published
-          to Stripe before customers can subscribe — that step creates the Stripe Product and Price
-          and wires it back to the plan row. You can re-publish at any time to push price or name
-          changes through.
-        </p>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="m-0 mb-2 font-display text-2xl text-maroon-600">Tiers</h2>
+            <p className="m-0 max-w-prose font-sans text-sm text-neutral-700">
+              The three default tiers seed automatically on first boot. Each one needs to be
+              published to Stripe before customers can subscribe — that step creates the Stripe
+              Product and Price and wires it back to the plan row. You can re-publish at any time
+              to push price or name changes through.
+            </p>
+          </div>
+          <Link
+            href="/admin/cravings/new"
+            className="inline-flex items-center justify-center bg-orange-600 px-5 py-2.5 font-sans text-sm font-semibold uppercase tracking-[0.18em] text-cream-50 hover:bg-orange-700"
+          >
+            New tier
+          </Link>
+        </div>
 
         {!plans || plans.length === 0 ? (
           <div className="border border-dashed border-cream-200 bg-paper p-6 text-center">
@@ -144,18 +155,24 @@ export default async function AdminCravingsPage() {
                       </Tag>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {p.stripeReady ? (
-                        <span className="font-sans text-xs text-neutral-500">—</span>
-                      ) : (
-                        <PlanPublishButton
-                          slug={p.slug}
-                          name={p.name}
-                          description={p.description}
-                          monthlyAmountMinor={p.monthlyAmountMinor}
-                          currency={p.currency}
-                          position={p.position}
-                        />
-                      )}
+                      <div className="flex flex-wrap items-center justify-end gap-3">
+                        <Link
+                          href={`/admin/cravings/${encodeURIComponent(p.slug)}`}
+                          className="font-sans text-sm font-semibold uppercase tracking-[0.16em] text-orange-600 underline underline-offset-4 hover:text-orange-700"
+                        >
+                          Edit
+                        </Link>
+                        {!p.stripeReady ? (
+                          <PlanPublishButton
+                            slug={p.slug}
+                            name={p.name}
+                            description={p.description}
+                            monthlyAmountMinor={p.monthlyAmountMinor}
+                            currency={p.currency}
+                            position={p.position}
+                          />
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
