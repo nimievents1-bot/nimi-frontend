@@ -46,11 +46,19 @@ export default async function AdminMenuPage({
   const { available, q } = await searchParams;
   const cookieHeader = (await cookies()).toString();
 
+  // The admin list is a single page (no client-side pagination yet) so we
+  // request the largest page the API will give us. The DTO caps `limit`
+  // at 100; asking for more triggers a 400 and the whole table fails to
+  // load — even pre-existing items disappear. If/when the catalog grows
+  // past 100 we'll need real pagination here; until then we surface a
+  // "showing X of Y" notice below so nothing can silently go missing.
+  const ADMIN_LIST_LIMIT = 100;
+
   const qs = new URLSearchParams();
   if (available === "true") qs.set("available", "true");
   if (available === "false") qs.set("available", "false");
   if (q) qs.set("q", q);
-  qs.set("limit", "200");
+  qs.set("limit", String(ADMIN_LIST_LIMIT));
 
   let data: ListResponse | null = null;
   let error: string | null = null;
@@ -124,6 +132,14 @@ export default async function AdminMenuPage({
       </form>
 
       {error ? <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p> : null}
+
+      {data && data.total > data.rows.length ? (
+        <p className="mb-4 border border-cream-200 bg-cream-100 px-4 py-3 font-sans text-sm text-maroon-700">
+          Showing the first {data.rows.length} of {data.total} items. Use the search
+          and status filters to narrow down — pagination will land before the catalog
+          reaches this size in regular use.
+        </p>
+      ) : null}
 
       {!data || data.rows.length === 0 ? (
         <div className="border border-dashed border-cream-200 bg-paper p-10 text-center">
