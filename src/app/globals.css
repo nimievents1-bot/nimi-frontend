@@ -43,13 +43,25 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Avoid horizontal scroll from any single overflowing child. */
-    overflow-x: hidden;
+    /*
+     * Block horizontal overflow from a stray child WITHOUT establishing
+     * a scroll container — `overflow-x: hidden` would, and that nukes
+     * any `position: sticky` descendant (the sticky element becomes
+     * relative to the hidden ancestor and stops sticking). `clip` is
+     * the modern keyword that clips overflow but does NOT create a
+     * scroll container, so the sticky header still anchors to the
+     * viewport as intended.
+     *
+     * Browser support is wide (Chrome 90+, Firefox 81+, Safari 16+,
+     * Edge 90+). Older browsers gracefully degrade to no clipping —
+     * acceptable, since we don't actually ship overflowing layouts.
+     */
+    overflow-x: clip;
   }
 
   body {
     @apply min-h-screen;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* Default focus ring across the app — orange, offset 3px, never removed. */

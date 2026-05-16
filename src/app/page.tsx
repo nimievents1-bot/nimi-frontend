@@ -92,20 +92,28 @@ export default async function HomePage() {
 
   return (
     <>
-      <div className="relative">
-        <div className="absolute inset-x-0 top-0 z-10">
-          <Header current="/" onDark />
-        </div>
-        <Hero
-          eyebrow={hero?.eyebrow ?? "Catering · Events · Gifting · Content"}
-          title={hero?.headline ?? "Where good food gathers."}
-          lede={
-            hero?.subheadline ??
-            "Authentically African flavours, considered planning, and gifts that arrive on time."
-          }
-          imageUrl={hero?.imageUrl ?? images.hero.home}
-        />
-      </div>
+      {/*
+       * Header is rendered at the top of the document flow rather than
+       * absolutely positioned over the hero. The previous overlay
+       * pattern (absolute inside a relative wrapper) broke
+       * `position: sticky`: a sticky element inside an absolutely-
+       * positioned ancestor anchors to that ancestor's bounds rather
+       * than to the viewport, which made the header scroll away with
+       * the hero. With the header in normal flow, sticky + the
+       * translucent maroon-glass surface on the `onDark` variant keeps
+       * the chrome present and legible whether the user is still over
+       * the hero photograph or has scrolled into the cream content.
+       */}
+      <Header current="/" onDark />
+      <Hero
+        eyebrow={hero?.eyebrow ?? "Catering · Events · Gifting · Content"}
+        title={hero?.headline ?? "Where good food gathers."}
+        lede={
+          hero?.subheadline ??
+          "Authentically African flavours, considered planning, and gifts that arrive on time."
+        }
+        imageUrl={hero?.imageUrl ?? images.hero.home}
+      />
 
       <main>
         <section className="bg-cream-50 px-page-gutter py-section-y">
