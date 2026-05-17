@@ -103,16 +103,58 @@ export async function Header({ onDark = false, current = "" }: HeaderProps) {
         })}
       </nav>
 
-      {/* Desktop right column: cart icon + Get-in-Touch stamp. */}
-      <div className="hidden items-center gap-4 md:flex">
+      {/* Desktop right column: sign in / account, cart icon, Get-in-Touch stamp.
+          - Unauthenticated visitors see "Sign in" — italic-serif voice so it
+            doesn't compete visually with the primary "Get in Touch" stamp
+            but is unmistakably a CTA. Sends them to /login.
+          - Signed-in visitors see "Account" instead, pointing at /account.
+            Staff (OWNER/EDITOR/SUPPORT) hitting /account get server-side
+            redirected to /admin, so this single link works for everyone. */}
+      <div className="hidden items-center gap-5 md:flex">
+        {isAuthed ? (
+          <Link
+            href="/account"
+            className={cn(
+              "font-display text-base italic transition-colors duration-fast ease-brand",
+              onDark
+                ? "text-cream-50 hover:text-orange-300"
+                : "text-maroon-700 hover:text-orange-700",
+            )}
+          >
+            Account
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className={cn(
+              "font-display text-base italic transition-colors duration-fast ease-brand",
+              onDark
+                ? "text-cream-50 hover:text-orange-300"
+                : "text-maroon-700 hover:text-orange-700",
+            )}
+          >
+            Sign in
+          </Link>
+        )}
         <CartIndicator onDark={onDark} isAuthed={isAuthed} />
         <Stamp onDark={onDark} />
       </div>
 
-      {/* Mobile-only right cluster: cart icon stays visible, hamburger to its right. */}
+      {/* Mobile-only right cluster: cart icon stays visible, hamburger to its right.
+          Sign in / Account is folded into the drawer items so the cluster
+          stays compact. */}
       <div className="flex items-center gap-2 md:hidden">
         <CartIndicator onDark={onDark} isAuthed={isAuthed} />
-        <MobileMenu items={[...navItems, { label: "Cart", href: "/cart" }]} onDark={onDark} />
+        <MobileMenu
+          items={[
+            ...navItems,
+            { label: "Cart", href: "/cart" },
+            isAuthed
+              ? { label: "Account", href: "/account" }
+              : { label: "Sign in", href: "/login" },
+          ]}
+          onDark={onDark}
+        />
       </div>
     </header>
   );
