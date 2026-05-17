@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 
 import { CartIndicator } from "./CartIndicator";
 import { MobileMenu } from "./MobileMenu";
+import { NotificationBell } from "./NotificationBell";
 
 interface HeaderProps {
   /** Render in light tone (over dark photography). Default false. */
@@ -136,14 +137,22 @@ export async function Header({ onDark = false, current = "" }: HeaderProps) {
             Sign in
           </Link>
         )}
+        {/* Bell renders only for signed-in users — the underlying
+            /notifications endpoint is JWT-guarded and would 401 for
+            anonymous requests anyway. Hiding the bell when there's no
+            session keeps the chrome clean and avoids a stray
+            "0 unread" badge for visitors who'll never have inbox. */}
+        {isAuthed ? <NotificationBell onDark={onDark} /> : null}
         <CartIndicator onDark={onDark} isAuthed={isAuthed} />
         <Stamp onDark={onDark} />
       </div>
 
       {/* Mobile-only right cluster: cart icon stays visible, hamburger to its right.
           Sign in / Account is folded into the drawer items so the cluster
-          stays compact. */}
+          stays compact. Bell appears for signed-in users only, sitting
+          between the cart and the hamburger. */}
       <div className="flex items-center gap-2 md:hidden">
+        {isAuthed ? <NotificationBell onDark={onDark} /> : null}
         <CartIndicator onDark={onDark} isAuthed={isAuthed} />
         <MobileMenu
           items={[

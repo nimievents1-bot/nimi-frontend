@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { NimiPotMark, Wordmark } from "@/components/brand/NimiPotMark";
 import { MobileMenu } from "@/components/patterns/MobileMenu";
+import { NotificationBell } from "@/components/patterns/NotificationBell";
 import { getSessionUser } from "@/lib/auth";
 
 import { LogoutButton } from "../(account)/LogoutButton";
@@ -52,22 +53,25 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-cream-50 lg:grid lg:grid-cols-[240px_1fr]">
-      {/* Mobile / tablet header (below lg) — wordmark + drawer trigger. */}
+      {/* Mobile / tablet header (below lg) — wordmark + bell + drawer trigger. */}
       <header className="flex items-center justify-between border-b border-cream-200 bg-cream-50 px-page-gutter py-4 lg:hidden">
         <Wordmark />
-        <MobileMenu
-          items={ADMIN_NAV}
-          showStamp={false}
-          footer={
-            <div className="border-t border-cream-200 pt-6">
-              <p className="m-0 mb-1 font-sans text-sm text-maroon-700">{user.name}</p>
-              <p className="m-0 mb-4 font-sans text-xs uppercase tracking-[0.18em] text-neutral-500">
-                {user.role.toLowerCase()}
-              </p>
-              <LogoutButton />
-            </div>
-          }
-        />
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <MobileMenu
+            items={ADMIN_NAV}
+            showStamp={false}
+            footer={
+              <div className="border-t border-cream-200 pt-6">
+                <p className="m-0 mb-1 font-sans text-sm text-maroon-700">{user.name}</p>
+                <p className="m-0 mb-4 font-sans text-xs uppercase tracking-[0.18em] text-neutral-500">
+                  {user.role.toLowerCase()}
+                </p>
+                <LogoutButton />
+              </div>
+            }
+          />
+        </div>
       </header>
 
       {/* Desktop sidebar (lg+). Sticky so it stays in view as content scrolls. */}
@@ -112,10 +116,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
 
         <div className="border-t border-cream-200 px-6 py-5">
-          <p className="m-0 truncate font-sans text-sm font-medium text-maroon-700">{user.name}</p>
-          <p className="m-0 mb-3 font-sans text-2xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-            {user.role.toLowerCase()}
-          </p>
+          {/* Bell + identity row. The bell anchors top-right so the
+              dropdown opens leftward into the sidebar's content area
+              rather than off the screen. */}
+          <div className="mb-3 flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="m-0 truncate font-sans text-sm font-medium text-maroon-700">
+                {user.name}
+              </p>
+              <p className="m-0 font-sans text-2xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                {user.role.toLowerCase()}
+              </p>
+            </div>
+            <NotificationBell />
+          </div>
           <LogoutButton />
         </div>
       </aside>
