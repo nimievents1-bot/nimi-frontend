@@ -17,10 +17,28 @@ export interface Profile {
   addressCity: string | null;
   addressPostcode: string | null;
   addressCountry: string | null;
+  birthDay: number | null;
+  birthMonth: number | null;
   emailVerifiedAt: string | null;
   role: string;
   createdAt: string;
 }
+
+/** Display labels for the birthday-month <select> — matches the signup form. */
+const MONTHS: Array<{ value: number; label: string }> = [
+  { value: 1, label: "January" },
+  { value: 2, label: "February" },
+  { value: 3, label: "March" },
+  { value: 4, label: "April" },
+  { value: 5, label: "May" },
+  { value: 6, label: "June" },
+  { value: 7, label: "July" },
+  { value: 8, label: "August" },
+  { value: 9, label: "September" },
+  { value: 10, label: "October" },
+  { value: 11, label: "November" },
+  { value: 12, label: "December" },
+];
 
 /**
  * ProfileForm — single editable form for the customer-editable parts
@@ -42,6 +60,15 @@ export function ProfileForm({ initial }: { initial: Profile }) {
   const [city, setCity] = useState(initial.addressCity ?? "");
   const [postcode, setPostcode] = useState(initial.addressPostcode ?? "");
   const [country, setCountry] = useState(initial.addressCountry ?? "GB");
+  // Birthday is intentionally stored as strings in form state so an
+  // empty select is distinguishable from "0". We coerce to number /
+  // null only when serialising the PATCH body.
+  const [birthDay, setBirthDay] = useState(
+    initial.birthDay != null ? String(initial.birthDay) : "",
+  );
+  const [birthMonth, setBirthMonth] = useState(
+    initial.birthMonth != null ? String(initial.birthMonth) : "",
+  );
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,8 +79,37 @@ export function ProfileForm({ initial }: { initial: Profile }) {
     e.preventDefault();
     setError(null);
     setIssues(null);
+
+    // Client-side birthday consistency check — both fields must be set
+    // or both empty. The API enforces this server-side too, but the
+    // client check gives a snappier response than waiting for a 400.
+    const dayPresent = birthDay !== "";
+    const monthPresent = birthMonth !== "";
+    if (dayPresent !== monthPresent) {
+      setError(
+        "Please pick both the day and the month of your birthday — or clear both to remove it.",
+      );
+      return;
+    }
+
     setPending(true);
     try {
+      // Serialise birthday as either { day, month } numbers, both null
+      // (explicit clear), or omitted entirely (no change). Omitting is
+      // the default when neither field has changed from the initial
+      // value, so we don't accidentally clear a saved birthday by
+      // submitting the form to update an unrelated field.
+      const initialDay = initial.birthDay;
+      const initialMonth = initial.birthMonth;
+      const wantsDay = dayPresent ? Number(birthDay) : null;
+      const wantsMonth = monthPresent ? Number(birthMonth) : null;
+      const birthdayChanged = wantsDay !== initialDay || wantsMonth !== initialMonth;
+
+      const birthdayPayload: { birthDay?: number | null; birthMonth?: number | null } =
+        birthdayChanged
+          ? { birthDay: wantsDay, birthMonth: wantsMonth }
+          : {};
+
       await apiFetch("/profile", {
         method: "PATCH",
         body: {
@@ -64,6 +120,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
           addressCity: city.trim(),
           addressPostcode: postcode.trim().toUpperCase(),
           addressCountry: country.trim().toUpperCase() || "GB",
+          ...birthdayPayload,
         },
       });
       setSavedAt(new Date());
@@ -163,6 +220,54 @@ export function ProfileForm({ initial }: { initial: Profile }) {
             />
           </label>
         </div>
+      </section>
+
+      <section>
+        <h2 className="m-0 mb-2 font-display text-2xl text-maroon-600">Birthday</h2>
+        <p className="mb-4 max-w-prose font-sans text-sm text-neutral-700">
+          Members of <strong>The Nimi Indulgence Club</strong> receive a small treat on their
+          birthday. We only collect the day and month — never the year — and use it solely to
+          send you a one-time discount code each year. Leave it blank if you'd rather opt out.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className={labelClass}>
+            Day
+            <select
+              className={fieldClass}
+              value={birthDay}
+              onChange={(e) => setBirthDay(e.target.value)}
+              aria-label="Birthday day"
+            >
+              <option value="">— Not set —</option>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={labelClass}>
+            Month
+            <select
+              className={fieldClass}
+              value={birthMonth}
+              onChange={(e) => setBirthMonth(e.target.value)}
+              aria-label="Birthday month"
+            >
+              <option value="">— Not set —</option>
+              {MONTHS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {(birthDay !== "" || birthMonth !== "") && (birthDay === "" || birthMonth === "") ? (
+          <p className="mt-3 font-sans text-xs text-semantic-danger">
+            Please pick both the day and the month — or clear both to remove your birthday.
+          </p>
+        ) : null}
       </section>
 
       <section>

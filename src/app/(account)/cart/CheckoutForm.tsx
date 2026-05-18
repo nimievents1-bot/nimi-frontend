@@ -59,12 +59,65 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: Checkou
   const shippingCountry = defaults?.country ?? "GB";
   const [notes, setNotes] = useState("");
 
+  // Promo code (birthday treat, welcome, etc.). The "Apply" affordance
+  // hits the read-only preview endpoint so the customer sees the
+  // discount land before checkout; the redemption itself happens
+  // atomically on `Place order`. We keep both the typed value and the
+  // last accepted preview so the UI can keep showing the discount
+  // even if the user edits the field afterwards (we'll revalidate on
+  // submit anyway).
+  const [promoCode, setPromoCode] = useState("");
+  const [promoPreview, setPromoPreview] = useState<{
+    code: string;
+    discountMinor: number;
+    currency: string;
+  } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [promoPending, setPromoPending] = useState(false);
+
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Separate state for the field-level validation list so we can render
   // each issue as its own bullet inside the brand Alert rather than as
   // one semicolon-joined wall of text.
   const [issues, setIssues] = useState<string[] | null>(null);
+
+  /** Apply / re-validate the promo code against the cart. Read-only. */
+  const onApplyPromo = async () => {
+    setPromoError(null);
+    setPromoPreview(null);
+    const code = promoCode.trim();
+    if (!code) {
+      setPromoError("Enter a promo code to apply.");
+      return;
+    }
+    setPromoPending(true);
+    try {
+      const result = await apiFetch<{
+        code: string;
+        discountMinor: number;
+        currency: string;
+      }>("/pastry-orders/promo/preview", {
+        method: "POST",
+        body: { code },
+      });
+      setPromoPreview(result);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setPromoError(err.detail);
+      } else {
+        setPromoError("Couldn't check that code right now — please try again.");
+      }
+    } finally {
+      setPromoPending(false);
+    }
+  };
+
+  const onRemovePromo = () => {
+    setPromoCode("");
+    setPromoPreview(null);
+    setPromoError(null);
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +138,11 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: Checkou
             shippingPostcode: shippingPostcode.trim().toUpperCase(),
             shippingCountry: shippingCountry.trim().toUpperCase() || "GB",
             notes: notes.trim() || undefined,
+            // Pass the preview's accepted code if the customer locked
+            // one in, otherwise fall back to whatever they typed (the
+            // API will revalidate either way; this keeps the flow
+            // forgiving if they typed but forgot to hit Apply).
+            promoCode: (promoPreview?.code ?? promoCode).trim() || undefined,
           },
         },
       );
@@ -207,6 +265,81 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: Checkou
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
       />
+
+      {/*
+        Promo code (birthday treat, welcome code, etc.). Optional —
+        ignored entirely if blank. We show the preview state inline so
+        the customer knows the discount has landed before they hit
+        "Place order". Pressing Enter inside the input triggers
+        Apply rather than submitting the parent form (handled via
+        keyDown so Form's default submit semantics aren't shadowed).
+      */}
+      <div className="mt-4 border border-cream-200 bg-paper p-4">
+        <p className="m-0 mb-1 font-display text-base font-medium text-maroon-600">
+          Promo code (optional)
+        </p>
+        <p className="mb-3 font-sans text-xs text-neutral-500">
+          Have a birthday treat or other code? Enter it here.
+        </p>
+        {promoPreview ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-sm tracking-[0.16em] text-maroon-700">
+              {promoPreview.code}
+            </span>
+            <span className="font-display text-sm italic text-orange-700">
+              −{" "}
+              {new Intl.NumberFormat("en-GB", {
+                style: "currency",
+                currency: promoPreview.currency.toUpperCase(),
+              }).format(promoPreview.discountMinor / 100)}
+            </span>
+            <button
+              type="button"
+              onClick={onRemovePromo}
+              className="ml-auto font-sans text-xs uppercase tracking-[0.16em] text-neutral-500 underline underline-offset-4 hover:text-maroon-700"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-stretch gap-2">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void onApplyPromo();
+                }
+              }}
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              maxLength={64}
+              placeholder="e.g. BDAY-JANE-7Q2X9"
+              aria-label="Promo code"
+              className="flex-1 border border-cream-200 bg-cream-50 px-3 py-2 font-mono text-sm uppercase tracking-[0.12em] focus:border-orange-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={onApplyPromo}
+              disabled={promoPending}
+              className="border border-maroon-600 bg-maroon-600 px-4 py-2 font-display italic text-cream-50 transition hover:bg-maroon-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {promoPending ? "Checking…" : "Apply"}
+            </button>
+          </div>
+        )}
+        {promoError ? (
+          <p
+            role="alert"
+            className="mt-2 font-sans text-xs text-semantic-danger"
+          >
+            {promoError}
+          </p>
+        ) : null}
+      </div>
 
       <div className="pt-3">
         <Button type="submit" variant="primary" block disabled={disabled}>

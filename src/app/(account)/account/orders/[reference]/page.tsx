@@ -34,6 +34,11 @@ interface CustomerOrder {
     | "REFUNDED";
   subtotalMinor: number;
   creditAppliedMinor: number;
+  /**
+   * Discount applied via promo code (birthday treat, welcome code, etc.)
+   * in minor units. Zero when no code was used.
+   */
+  promoDiscountMinor?: number;
   totalMinor: number;
   currency: string;
   shippingLine1: string;
@@ -172,10 +177,22 @@ export default async function CustomerOrderDetail({
               <dd className="text-right text-neutral-900">
                 {fmt(order.subtotalMinor, order.currency)}
               </dd>
-              <dt className="text-neutral-700">Indulgence Credits</dt>
-              <dd className="text-right text-orange-700">
-                −{fmt(order.creditAppliedMinor, order.currency)}
-              </dd>
+              {order.promoDiscountMinor && order.promoDiscountMinor > 0 ? (
+                <>
+                  <dt className="text-neutral-700">Promo code</dt>
+                  <dd className="text-right text-orange-700">
+                    −{fmt(order.promoDiscountMinor, order.currency)}
+                  </dd>
+                </>
+              ) : null}
+              {order.creditAppliedMinor > 0 ? (
+                <>
+                  <dt className="text-neutral-700">Indulgence Credits</dt>
+                  <dd className="text-right text-orange-700">
+                    −{fmt(order.creditAppliedMinor, order.currency)}
+                  </dd>
+                </>
+              ) : null}
               <dt className="border-t border-cream-200 pt-3 font-medium text-maroon-700">
                 Paid
               </dt>
