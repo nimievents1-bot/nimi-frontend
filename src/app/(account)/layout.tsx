@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { Wordmark } from "@/components/brand/NimiPotMark";
+import { CartIndicator } from "@/components/patterns/CartIndicator";
 import { Footer } from "@/components/patterns/Footer";
 import { MobileMenu } from "@/components/patterns/MobileMenu";
+import { NotificationBell } from "@/components/patterns/NotificationBell";
 import { requireSessionUser } from "@/lib/auth";
 
 import { LogoutButton } from "./LogoutButton";
@@ -31,7 +33,15 @@ export default async function AccountLayout({ children }: { children: React.Reac
         <div className="mx-auto flex max-w-page items-center justify-between gap-4">
           <Wordmark />
 
-          {/* Desktop nav. */}
+          {/*
+            Desktop nav. The bell + cart icons live in their own
+            sub-cluster after the nav links so they don't visually mix
+            with the text links — they're action affordances rather
+            than navigation. We always pass `isAuthed={true}` here:
+            this layout is gated by `requireSessionUser` above, so by
+            the time the bell renders we already know there's a
+            session for the protected /notifications poll to use.
+          */}
           <nav aria-label="Account" className="hidden items-center gap-6 md:flex">
             {ACCOUNT_NAV.map((item) => (
               <Link
@@ -43,11 +53,21 @@ export default async function AccountLayout({ children }: { children: React.Reac
               </Link>
             ))}
             <span className="hidden font-sans text-sm text-neutral-500 lg:inline">{user.email}</span>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <CartIndicator isAuthed />
+            </div>
             <LogoutButton />
           </nav>
 
-          {/* Mobile drawer trigger. */}
-          <div className="md:hidden">
+          {/*
+            Mobile: cart + bell sit outside the drawer so the customer
+            can reach them without opening the menu. Hamburger handles
+            the rest of the nav.
+          */}
+          <div className="flex items-center gap-2 md:hidden">
+            <NotificationBell />
+            <CartIndicator isAuthed />
             <MobileMenu
               items={ACCOUNT_NAV}
               showStamp={false}
