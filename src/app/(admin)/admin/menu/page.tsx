@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 
@@ -131,7 +132,7 @@ export default async function AdminMenuPage({
         </button>
       </form>
 
-      {error ? <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p> : null}
+      {error ? <Alert variant="danger" className="mb-6">{error}</Alert> : null}
 
       {data && data.total > data.rows.length ? (
         <p className="mb-4 border border-cream-200 bg-cream-100 px-4 py-3 font-sans text-sm text-maroon-700">

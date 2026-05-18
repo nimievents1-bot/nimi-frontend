@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 
@@ -186,7 +187,7 @@ export default async function AdminCravingsPage() {
       <h2 className="m-0 mb-2 font-display text-2xl text-maroon-600">Subscribers</h2>
 
       {error ? (
-        <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p>
+        <Alert variant="danger" className="mb-6">{error}</Alert>
       ) : null}
 
       {!data || data.rows.length === 0 ? (

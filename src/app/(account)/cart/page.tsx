@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 import { requireSessionUser } from "@/lib/auth";
@@ -83,7 +84,9 @@ export default async function CartPage({
       ) : null}
 
       {error ? (
-        <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p>
+        <Alert variant="danger" className="mb-6">
+          {error}
+        </Alert>
       ) : null}
 
       {empty ? (

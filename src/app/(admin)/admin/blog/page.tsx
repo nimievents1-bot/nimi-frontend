@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 
@@ -41,10 +42,19 @@ export default async function AdminBlogList({
   const { status, q } = await searchParams;
   const cookieHeader = (await cookies()).toString();
 
+  // The admin blog index loads a single page of posts — no infinite
+  // scroll yet. The API caps `limit` at 50; asking for more triggers
+  // a 400 and wipes the entire list (the user lost every post they'd
+  // written until we discover this together — same bug class as the
+  // pastry menu had). Using the API ceiling avoids that, and the
+  // "Showing X of Y" notice below tells the admin if the catalog has
+  // outgrown the single-page view so nothing silently disappears.
+  const ADMIN_BLOG_LIMIT = 50;
+
   const qs = new URLSearchParams();
   if (status) qs.set("status", status);
   if (q) qs.set("q", q);
-  qs.set("limit", "100");
+  qs.set("limit", String(ADMIN_BLOG_LIMIT));
 
   let data: ListResponse | null = null;
   let error: string | null = null;
@@ -100,7 +110,19 @@ export default async function AdminBlogList({
         </Link>
       </form>
 
-      {error ? <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p> : null}
+      {error ? (
+        <Alert variant="danger" className="mb-6">
+          {error}
+        </Alert>
+      ) : null}
+
+      {data && data.total > data.rows.length ? (
+        <p className="mb-4 border border-cream-200 bg-cream-100 px-4 py-3 font-sans text-sm text-maroon-700">
+          Showing the first {data.rows.length} of {data.total} posts. Use the search and status
+          filters to narrow down — pagination will land before the journal reaches this size in
+          regular use.
+        </p>
+      ) : null}
 
       {!data || data.rows.length === 0 ? (
         <div className="border border-dashed border-cream-200 bg-paper p-10 text-center">

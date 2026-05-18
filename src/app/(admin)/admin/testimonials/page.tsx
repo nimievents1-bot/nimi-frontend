@@ -1,6 +1,7 @@
 import { type Metadata } from "next";
 import { cookies } from "next/headers";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 
@@ -38,10 +39,16 @@ export default async function AdminTestimonialsPage({
   const cookieHeader = (await cookies()).toString();
 
   const qs = new URLSearchParams();
+  // API caps `limit` at 50 — asking for more 400s and wipes the
+  // entire admin list. If/when testimonials outgrow 50 the
+  // "Showing X of Y" notice below appears so nothing silently
+  // disappears.
+  const ADMIN_TESTIMONIALS_LIMIT = 50;
+
   if (isPublished === "true") qs.set("isPublished", "true");
   if (isPublished === "false") qs.set("isPublished", "false");
   if (q) qs.set("q", q);
-  qs.set("limit", "100");
+  qs.set("limit", String(ADMIN_TESTIMONIALS_LIMIT));
 
   let data: ListResponse | null = null;
   let error: string | null = null;
@@ -97,7 +104,18 @@ export default async function AdminTestimonialsPage({
         </button>
       </form>
 
-      {error ? <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p> : null}
+      {error ? (
+        <Alert variant="danger" className="mb-6">
+          {error}
+        </Alert>
+      ) : null}
+
+      {data && data.total > data.rows.length ? (
+        <p className="mb-4 border border-cream-200 bg-cream-100 px-4 py-3 font-sans text-sm text-maroon-700">
+          Showing the first {data.rows.length} of {data.total} testimonials. Use the search and
+          status filters to narrow down.
+        </p>
+      ) : null}
 
       <section className="mb-10 border border-cream-200 bg-paper p-6">
         <h2 className="m-0 mb-4 font-display text-2xl font-medium text-maroon-600">

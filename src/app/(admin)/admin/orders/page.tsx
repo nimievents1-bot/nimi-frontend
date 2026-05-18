@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
+import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 
@@ -117,7 +118,7 @@ export default async function AdminOrdersList({
         </button>
       </form>
 
-      {error ? <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p> : null}
+      {error ? <Alert variant="danger" className="mb-6">{error}</Alert> : null}
 
       {!data || data.rows.length === 0 ? (
         <div className="border border-dashed border-cream-200 bg-paper p-10 text-center">

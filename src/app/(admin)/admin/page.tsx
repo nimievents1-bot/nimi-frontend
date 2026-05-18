@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
+import { Alert } from "@/components/primitives/Alert";
 import { apiFetch } from "@/lib/api";
 
 export const metadata: Metadata = {
@@ -72,7 +73,7 @@ export default async function AdminDashboardPage() {
       ) : null}
 
       {error ? (
-        <p className="mb-6 font-sans text-sm text-semantic-danger">{error}</p>
+        <Alert variant="danger" className="mb-6">{error}</Alert>
       ) : null}
 
       {(["operations", "commerce", "growth"] as const).map((group) => (
