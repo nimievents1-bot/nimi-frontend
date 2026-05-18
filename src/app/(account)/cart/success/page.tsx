@@ -1,17 +1,60 @@
 import { type Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
+
+import { apiFetch } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Order received",
   robots: { index: false, follow: false },
 };
 
+/**
+ * Cart success page — landed on by the customer after Stripe Checkout.
+ *
+ * Webhook safety net:
+ *   Stripe sends `checkout.session.completed` via webhook, but webhook
+ *   delivery is best-effort. If the webhook is slow, misrouted, or
+ *   blocked by a mis-configured signing secret, the order in our DB
+ *   would still read PENDING_PAYMENT and the customer would see a
+ *   stale state. To prevent that, we call our own reconcile endpoint
+ *   here — passing the `session_id` Stripe stamped into the
+ *   success_url. The endpoint asks Stripe directly whether the session
+ *   is paid, and if it is, calls the same idempotent handler the
+ *   webhook would call. So the customer-facing flow (this page, the
+ *   confirmation emails, the in-app notifications, the credit
+ *   deduction) all fire even when the webhook never lands.
+ *
+ *   We run this as a fire-and-forget side effect — if reconciliation
+ *   itself errors (network blip, Stripe transient outage), the
+ *   customer still sees a friendly "thank you" page. The next time
+ *   they reload, or the webhook lands, the order will reach PAID.
+ */
 export default async function CartSuccessPage({
   searchParams,
 }: {
   searchParams: Promise<{ order?: string; session_id?: string }>;
 }) {
-  const { order } = await searchParams;
+  const { order, session_id: sessionId } = await searchParams;
+
+  // Fire the reconcile call. Best-effort — we catch every error so a
+  // failure here cannot prevent the customer from seeing their
+  // confirmation page. Idempotent: re-running on a PAID order is a
+  // no-op on the API side.
+  if (order && sessionId) {
+    try {
+      const cookieHeader = (await cookies()).toString();
+      await apiFetch(`/pastry-orders/mine/${encodeURIComponent(order)}/reconcile`, {
+        method: "POST",
+        headers: { Cookie: cookieHeader },
+        body: { sessionId },
+        cache: "no-store",
+      });
+    } catch {
+      // Webhook will reconcile eventually; the customer experience
+      // is unaffected. Silent failure is intentional here.
+    }
+  }
 
   return (
     <div className="mx-auto max-w-xl py-10">

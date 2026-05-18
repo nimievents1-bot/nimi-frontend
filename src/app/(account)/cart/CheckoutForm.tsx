@@ -40,10 +40,15 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable }: CheckoutFormProps
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Separate state for the field-level validation list so we can render
+  // each issue as its own bullet inside the brand Alert rather than as
+  // one semicolon-joined wall of text.
+  const [issues, setIssues] = useState<string[] | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIssues(null);
     setPending(true);
     try {
       const result = await apiFetch<{ url: string; reference: string }>(
@@ -72,7 +77,23 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable }: CheckoutFormProps
         router.refresh();
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.detail : "Couldn't start checkout.");
+      if (err instanceof ApiError) {
+        // A 400 from class-validator carries the field issues as an
+        // array in `fieldErrors.errors`. Render those as bullets and
+        // skip the joined `detail` (it's literally the bullets glued
+        // together with "; " — redundant when we have the list).
+        const validationList = err.fieldErrors?.errors ?? null;
+        if (validationList && validationList.length > 0) {
+          setIssues(validationList);
+          setError(null);
+        } else {
+          setError(err.detail);
+          setIssues(null);
+        }
+      } else {
+        setError("Couldn't start checkout.");
+        setIssues(null);
+      }
       setPending(false);
     }
   };
@@ -81,6 +102,25 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable }: CheckoutFormProps
 
   return (
     <form noValidate onSubmit={onSubmit} className="space-y-1">
+      {/* Validation issues — rendered as a bulleted list inside the
+          brand Alert so each problem is scannable on its own line.
+          Title is friendly ("Please check the highlighted fields")
+          and the field labels live inside each bullet, not at the
+          start of a wall of text. */}
+      {issues ? (
+        <Alert variant="danger" className="mb-4">
+          <p className="m-0 mb-2 font-semibold">Please check these details before continuing:</p>
+          <ul className="m-0 list-disc pl-5 font-sans text-sm">
+            {issues.map((issue, idx) => (
+              <li key={idx} className="mt-1 first:mt-0">
+                {issue}
+              </li>
+            ))}
+          </ul>
+        </Alert>
+      ) : null}
+
+      {/* General error (network failure, 5xx, etc.) — single message. */}
       {error ? (
         <Alert variant="danger" className="mb-4">
           {error}
