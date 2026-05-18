@@ -115,28 +115,49 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           )}
         </nav>
 
+        {/*
+          Sidebar footer — identity + sign out only. The notification
+          bell used to live here, but it's been moved to a top bar
+          above the content area on desktop. That keeps the sidebar
+          purely navigational (and makes the bell easier to spot
+          while reading any page since it's pinned to the top of the
+          working canvas rather than the bottom of the chrome).
+        */}
         <div className="border-t border-cream-200 px-6 py-5">
-          {/* Bell + identity row. The bell anchors top-right so the
-              dropdown opens leftward into the sidebar's content area
-              rather than off the screen. */}
-          <div className="mb-3 flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="m-0 truncate font-sans text-sm font-medium text-maroon-700">
-                {user.name}
-              </p>
-              <p className="m-0 font-sans text-2xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                {user.role.toLowerCase()}
-              </p>
-            </div>
-            <NotificationBell />
-          </div>
+          <p className="m-0 truncate font-sans text-sm font-medium text-maroon-700">
+            {user.name}
+          </p>
+          <p className="m-0 mb-3 font-sans text-2xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+            {user.role.toLowerCase()}
+          </p>
           <LogoutButton />
         </div>
       </aside>
 
-      <main className="px-page-gutter py-10 md:py-12 lg:py-10">
-        <div className="mx-auto w-full max-w-[1100px]">{children}</div>
-      </main>
+      {/*
+        Content column. On desktop (lg+) we render a sticky top bar
+        above the page content that hosts the notification bell. It
+        sits flush with the top of the sidebar's wordmark band so the
+        chrome reads as one continuous frame.
+
+        The top bar is intentionally minimal — just a right-aligned
+        bell — because the sidebar already carries the wordmark,
+        navigation, and user identity. Anything else here would
+        compete for the operator's attention with the actual content
+        below it.
+
+        Below lg the bar is hidden (the mobile header above already
+        contains the bell), so this only adds chrome to wide screens.
+      */}
+      <div className="flex min-h-screen flex-col">
+        <div className="sticky top-0 z-30 hidden items-center justify-end border-b border-cream-200 bg-cream-50/95 px-page-gutter py-3 backdrop-blur supports-[backdrop-filter]:bg-cream-50/80 lg:flex">
+          <NotificationBell />
+        </div>
+
+        <main className="flex-1 px-page-gutter py-10 md:py-12 lg:py-10">
+          <div className="mx-auto w-full max-w-[1100px]">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
