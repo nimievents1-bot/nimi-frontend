@@ -8,9 +8,26 @@ import { Button } from "@/components/primitives/Button";
 import { TextField, TextareaField } from "@/components/primitives/Field";
 import { ApiError, apiFetch } from "@/lib/api";
 
+interface CheckoutDefaults {
+  name?: string;
+  phone?: string;
+  line1?: string;
+  line2?: string;
+  city?: string;
+  postcode?: string;
+  country?: string;
+}
+
 interface CheckoutFormProps {
   meetsMinimum: boolean;
   anyUnavailable: boolean;
+  /**
+   * Initial values pulled from the customer's saved profile so they
+   * don't have to retype their delivery address every checkout. They
+   * can still edit any field before placing the order — this is just
+   * a "make the common case nicer" affordance.
+   */
+  defaults?: CheckoutDefaults;
 }
 
 /**
@@ -23,19 +40,23 @@ interface CheckoutFormProps {
  * already computed server-side; we mirror them in the disabled state so
  * the user sees the gate before clicking, not after.
  */
-export function CheckoutForm({ meetsMinimum, anyUnavailable }: CheckoutFormProps) {
+export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: CheckoutFormProps) {
   const router = useRouter();
 
-  const [recipientName, setRecipientName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [shippingLine1, setShippingLine1] = useState("");
-  const [shippingLine2, setShippingLine2] = useState("");
-  const [shippingCity, setShippingCity] = useState("");
-  const [shippingPostcode, setShippingPostcode] = useState("");
+  // Pre-fill from the customer's saved profile when present, so a
+  // returning customer doesn't retype their delivery address every
+  // time. Every field stays editable — these are just the starting
+  // values. New customers without a profile address see empty inputs.
+  const [recipientName, setRecipientName] = useState(defaults?.name ?? "");
+  const [phone, setPhone] = useState(defaults?.phone ?? "");
+  const [shippingLine1, setShippingLine1] = useState(defaults?.line1 ?? "");
+  const [shippingLine2, setShippingLine2] = useState(defaults?.line2 ?? "");
+  const [shippingCity, setShippingCity] = useState(defaults?.city ?? "");
+  const [shippingPostcode, setShippingPostcode] = useState(defaults?.postcode ?? "");
   // Country is locked to GB for v1 (delivery is UK-only). When the
   // operator opens up multi-country shipping, expose a select field
   // here and replace this constant with state.
-  const shippingCountry = "GB";
+  const shippingCountry = defaults?.country ?? "GB";
   const [notes, setNotes] = useState("");
 
   const [pending, setPending] = useState(false);

@@ -54,17 +54,41 @@ export default async function CartPage({
   const { status } = await searchParams;
   const cookieHeader = (await cookies()).toString();
 
-  let view: CartView | null = null;
-  let error: string | null = null;
-  try {
-    view = await apiFetch<CartView>("/pastry-cart", {
+  // Load cart and customer's saved profile in parallel. The profile
+  // is purely a UI nicety — pre-fills the checkout form so a returning
+  // customer doesn't retype name/address. Failing the profile fetch
+  // doesn't block the cart; the form just opens empty.
+  interface ProfileDefaults {
+    name: string | null;
+    phone: string | null;
+    addressLine1: string | null;
+    addressLine2: string | null;
+    addressCity: string | null;
+    addressPostcode: string | null;
+    addressCountry: string | null;
+  }
+  const [viewResult, profileResult] = await Promise.allSettled([
+    apiFetch<CartView>("/pastry-cart", {
       method: "GET",
       headers: { Cookie: cookieHeader },
       cache: "no-store",
-    });
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to load your cart.";
-  }
+    }),
+    apiFetch<ProfileDefaults>("/profile", {
+      method: "GET",
+      headers: { Cookie: cookieHeader },
+      cache: "no-store",
+    }),
+  ]);
+
+  const view: CartView | null = viewResult.status === "fulfilled" ? viewResult.value : null;
+  const error: string | null =
+    viewResult.status === "rejected"
+      ? viewResult.reason instanceof Error
+        ? viewResult.reason.message
+        : "Failed to load your cart."
+      : null;
+  const profile: ProfileDefaults | null =
+    profileResult.status === "fulfilled" ? profileResult.value : null;
 
   const empty = !view || view.lines.length === 0;
 
@@ -205,6 +229,19 @@ export default async function CartPage({
               <CheckoutForm
                 meetsMinimum={view.meetsMinimum}
                 anyUnavailable={view.lines.some((l) => !l.available)}
+                defaults={
+                  profile
+                    ? {
+                        name: profile.name ?? "",
+                        phone: profile.phone ?? "",
+                        line1: profile.addressLine1 ?? "",
+                        line2: profile.addressLine2 ?? "",
+                        city: profile.addressCity ?? "",
+                        postcode: profile.addressPostcode ?? "",
+                        country: profile.addressCountry ?? "GB",
+                      }
+                    : undefined
+                }
               />
             </section>
           </aside>

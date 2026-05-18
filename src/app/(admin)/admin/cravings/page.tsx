@@ -20,7 +20,16 @@ interface SubscriberRow {
   currency: string;
   balanceMinor: number;
   currentPeriodEnd: string | null;
-  user: { email: string; name: string } | null;
+  user: {
+    email: string;
+    name: string;
+    phone: string | null;
+    addressLine1: string | null;
+    addressLine2: string | null;
+    addressCity: string | null;
+    addressPostcode: string | null;
+    addressCountry: string | null;
+  } | null;
   plan: { name: string } | null;
 }
 
@@ -205,32 +214,66 @@ export default async function AdminCravingsPage() {
                 <th className="px-4 py-3">Monthly</th>
                 <th className="px-4 py-3">Balance</th>
                 <th className="px-4 py-3">Renews</th>
+                <th className="px-4 py-3">Delivery address</th>
               </tr>
             </thead>
             <tbody className="font-sans text-sm">
-              {data.rows.map((s) => (
-                <tr key={s.id} className="border-t border-cream-200">
-                  <td className="px-4 py-3 text-neutral-800">
-                    <div>{s.user?.name ?? "—"}</div>
-                    <div className="text-xs text-neutral-500">{s.user?.email ?? "—"}</div>
-                  </td>
-                  <td className="px-4 py-3 text-neutral-700">{s.plan?.name ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <Tag variant={STATUS_VARIANT[s.status] ?? "neutral"}>{s.status.toLowerCase()}</Tag>
-                  </td>
-                  <td className="px-4 py-3 text-neutral-800">
-                    {fmt(s.monthlyAmountMinor, s.currency)}
-                  </td>
-                  <td className="px-4 py-3 font-display text-base text-maroon-600">
-                    {fmt(s.balanceMinor, s.currency)}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-500">
-                    {s.currentPeriodEnd
-                      ? new Date(s.currentPeriodEnd).toLocaleDateString()
-                      : "—"}
-                  </td>
-                </tr>
-              ))}
+              {data.rows.map((s) => {
+                // Compose a multi-line delivery address from whatever
+                // fields the subscriber has filled in. If the address
+                // is incomplete we show a "Not provided" hint so the
+                // admin knows to chase the customer (or for now, just
+                // wait for them to fill it in via /account/profile).
+                const lines = [
+                  s.user?.addressLine1,
+                  s.user?.addressLine2,
+                  [s.user?.addressCity, s.user?.addressPostcode]
+                    .filter((v) => v && v.length > 0)
+                    .join(" "),
+                  s.user?.addressCountry,
+                ].filter((line): line is string => Boolean(line && line.length > 0));
+                const hasAddress = lines.length > 0;
+
+                return (
+                  <tr key={s.id} className="border-t border-cream-200 align-top">
+                    <td className="px-4 py-3 text-neutral-800">
+                      <div>{s.user?.name ?? "—"}</div>
+                      <div className="text-xs text-neutral-500">{s.user?.email ?? "—"}</div>
+                      {s.user?.phone ? (
+                        <div className="text-xs text-neutral-500">{s.user.phone}</div>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-700">{s.plan?.name ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <Tag variant={STATUS_VARIANT[s.status] ?? "neutral"}>
+                        {s.status.toLowerCase()}
+                      </Tag>
+                    </td>
+                    <td className="px-4 py-3 text-neutral-800">
+                      {fmt(s.monthlyAmountMinor, s.currency)}
+                    </td>
+                    <td className="px-4 py-3 font-display text-base text-maroon-600">
+                      {fmt(s.balanceMinor, s.currency)}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-500">
+                      {s.currentPeriodEnd
+                        ? new Date(s.currentPeriodEnd).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-800">
+                      {hasAddress ? (
+                        <div className="whitespace-pre-line text-xs leading-relaxed">
+                          {lines.join("\n")}
+                        </div>
+                      ) : (
+                        <span className="text-xs italic text-neutral-500">
+                          Not provided yet — the customer can add it on their profile.
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
