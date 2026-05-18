@@ -101,42 +101,81 @@ function buildLoginRedirect(req: NextRequest): NextResponse {
 }
 
 /**
- * Call the API's refresh endpoint with the presented refresh cookie.
- * Returns the parsed `Set-Cookie` array and the new access/refresh
- * token values when successful, or `null` on any failure.
+ * Result of attempting to refresh the access token.
+ *
+ *   "ok"        — refresh succeeded; new tokens included.
+ *   "rejected"  — the API definitively rejected the refresh token
+ *                 (401 / 403). The token is bad — revoked, expired,
+ *                 reused, or never valid. Caller should clear cookies
+ *                 and force re-auth.
+ *   "transient" — anything else (5xx, network error, timeout). The
+ *                 refresh token might still be good; we just couldn't
+ *                 reach the API or it hiccupped. Caller MUST NOT
+ *                 clear cookies — the next request will try again.
  */
-async function attemptRefresh(refreshToken: string): Promise<{
-  setCookieHeaders: string[];
-  newAccessToken: string | null;
-  newRefreshToken: string | null;
-} | null> {
-  const apiBase = apiBaseUrl();
-  if (!apiBase) return null;
+type RefreshOutcome =
+  | {
+      kind: "ok";
+      setCookieHeaders: string[];
+      newAccessToken: string | null;
+      newRefreshToken: string | null;
+    }
+  | { kind: "rejected" }
+  | { kind: "transient" };
 
+/**
+ * Call the API's refresh endpoint with the presented refresh cookie.
+ *
+ * The outcome distinguishes "the token is bad" from "we couldn't
+ * complete the request" so the proxy can be conservative about
+ * destroying sessions. Operator policy is sessions-never-expire-on-
+ * their-own; only an explicit sign-out or a definitive token
+ * rejection should ever log a user out.
+ */
+async function attemptRefresh(refreshToken: string): Promise<RefreshOutcome> {
+  const apiBase = apiBaseUrl();
+  if (!apiBase) return { kind: "transient" };
+
+  let refreshResponse: Response;
   try {
-    const refreshResponse = await fetch(`${apiBase}/api/v1/auth/refresh`, {
+    refreshResponse = await fetch(`${apiBase}/api/v1/auth/refresh`, {
       method: "POST",
       headers: { Cookie: `${REFRESH_COOKIE}=${refreshToken}` },
       cache: "no-store",
     });
-    if (!refreshResponse.ok) return null;
-
-    const setCookieHeaders = refreshResponse.headers.getSetCookie?.() ?? [];
-    let newAccessToken: string | null = null;
-    let newRefreshToken: string | null = null;
-    for (const raw of setCookieHeaders) {
-      const firstSegment = raw.split(";")[0];
-      const eqIdx = firstSegment?.indexOf("=") ?? -1;
-      if (!firstSegment || eqIdx === -1) continue;
-      const name = firstSegment.slice(0, eqIdx).trim();
-      const value = firstSegment.slice(eqIdx + 1).trim();
-      if (name === ACCESS_COOKIE) newAccessToken = value;
-      else if (name === REFRESH_COOKIE) newRefreshToken = value;
-    }
-    return { setCookieHeaders, newAccessToken, newRefreshToken };
   } catch {
-    return null;
+    // Network error, DNS failure, fetch threw. The refresh cookie may
+    // still be valid; we just couldn't reach the API. Treat as
+    // transient so we don't punish the user for an outage.
+    return { kind: "transient" };
   }
+
+  // 401 / 403 means the API has decided this refresh token is no
+  // longer valid (revoked, reused, family-bumped after theft, or
+  // genuinely expired after the very long TTL). That's the only
+  // case where it's safe to clear cookies and force a fresh sign-in.
+  if (refreshResponse.status === 401 || refreshResponse.status === 403) {
+    return { kind: "rejected" };
+  }
+  // Anything else non-ok (e.g. 500, 503, 429) — server problem, not
+  // an auth problem. Leave cookies alone.
+  if (!refreshResponse.ok) {
+    return { kind: "transient" };
+  }
+
+  const setCookieHeaders = refreshResponse.headers.getSetCookie?.() ?? [];
+  let newAccessToken: string | null = null;
+  let newRefreshToken: string | null = null;
+  for (const raw of setCookieHeaders) {
+    const firstSegment = raw.split(";")[0];
+    const eqIdx = firstSegment?.indexOf("=") ?? -1;
+    if (!firstSegment || eqIdx === -1) continue;
+    const name = firstSegment.slice(0, eqIdx).trim();
+    const value = firstSegment.slice(eqIdx + 1).trim();
+    if (name === ACCESS_COOKIE) newAccessToken = value;
+    else if (name === REFRESH_COOKIE) newRefreshToken = value;
+  }
+  return { kind: "ok", setCookieHeaders, newAccessToken, newRefreshToken };
 }
 
 export async function proxy(req: NextRequest): Promise<NextResponse> {
@@ -167,10 +206,13 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
   }
 
   const refreshed = await attemptRefresh(refreshToken);
-  if (!refreshed) {
-    // Refresh failed (rotated by another tab, revoked, expired, network
-    // blip, family-reuse detected). Clear both cookies so we don't loop
-    // on every navigation, then either redirect or fall through.
+
+  if (refreshed.kind === "rejected") {
+    // Definitive auth rejection — the refresh token is no longer
+    // valid (rotated by another tab, revoked at sign-out, family
+    // bumped by reuse detection). Clearing both cookies here is
+    // safe and prevents the proxy from looping on every navigation
+    // calling /auth/refresh forever.
     const response = protectedRoute
       ? buildLoginRedirect(req)
       : NextResponse.next();
@@ -179,9 +221,28 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
     return response;
   }
 
-  // Rewrite the incoming request's `cookie` header so server
-  // components rendering this same request see the brand-new access
-  // token via `cookies()` — no second round-trip required.
+  if (refreshed.kind === "transient") {
+    // The refresh attempt didn't succeed, but the token might still
+    // be good — could be a 5xx, a network blip, or a cold Railway
+    // dyno taking a moment to wake up. Operator policy is sessions
+    // never expire on their own, so we deliberately DO NOT clear
+    // cookies here. The next request will try again.
+    //
+    // For protected routes we still need to do *something* this
+    // request, because the page-level `requireSessionUser` will
+    // run with the stale access token and bounce to /login anyway.
+    // Allowing the page through with a stale cookie would create a
+    // worse experience than a clean redirect — so we redirect to
+    // login but leave the cookies untouched. On retry (after Railway
+    // recovers), the next visit will refresh successfully and the
+    // user gets back to where they were.
+    return protectedRoute ? buildLoginRedirect(req) : NextResponse.next();
+  }
+
+  // Refresh succeeded. Rewrite the incoming request's `cookie` header
+  // so server components rendering this same request see the
+  // brand-new access token via `cookies()` — no second round-trip
+  // required.
   const requestHeaders = new Headers(req.headers);
   const incomingCookie = requestHeaders.get("cookie") ?? "";
   const cookieParts = incomingCookie
