@@ -42,6 +42,12 @@ export function GiftCheckoutForm({ slug, name, moq, unitPriceMinor, currency }: 
     custName: z.string().max(80).optional().or(z.literal("")),
     custMessage: z.string().max(500).optional().or(z.literal("")),
     custColourTheme: z.string().max(40).optional().or(z.literal("")),
+    // PRD §7.4.3 — customer must explicitly accept that designs need
+    // approval before production starts. The API enforces this too.
+    designApprovalAccepted: z.boolean().refine((v) => v === true, {
+      message:
+        "Please confirm that you understand designs need to be approved before production begins.",
+    }),
     website: z.string().max(0).optional().or(z.literal("")),
   });
   type FormValues = z.infer<typeof Schema>;
@@ -82,6 +88,7 @@ export function GiftCheckoutForm({ slug, name, moq, unitPriceMinor, currency }: 
             ...(values.custMessage ? { message: values.custMessage } : {}),
             ...(values.custColourTheme ? { colourTheme: values.custColourTheme } : {}),
           },
+          designApprovalAccepted: values.designApprovalAccepted,
           turnstileToken: token,
         },
       });
@@ -163,6 +170,31 @@ export function GiftCheckoutForm({ slug, name, moq, unitPriceMinor, currency }: 
           <input type="text" tabIndex={-1} autoComplete="off" {...register("website")} />
         </label>
       </div>
+
+      {/*
+        PRD-required acknowledgement. The API rejects the checkout
+        request if this isn't ticked, so we want the customer to see
+        the box (and the error if they miss it) before they hand over
+        card details. Styled like the rest of our form controls —
+        cream tile, maroon accent, brand sans copy.
+      */}
+      <label className="mt-2 flex items-start gap-3 border border-cream-200 bg-cream-50 px-4 py-3 font-sans text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          {...register("designApprovalAccepted")}
+          className="mt-0.5 h-4 w-4 flex-none accent-maroon-600"
+        />
+        <span>
+          I understand each gift box is made to order and that the final design{" "}
+          <strong>requires my approval</strong> before production begins. The team will email
+          a mock-up within a few working days; production starts only after I approve it.
+        </span>
+      </label>
+      {errors.designApprovalAccepted ? (
+        <p role="alert" className="mt-1 font-sans text-xs text-semantic-danger">
+          {errors.designApprovalAccepted.message}
+        </p>
+      ) : null}
 
       <Turnstile onToken={setToken} />
 

@@ -22,7 +22,8 @@ interface OrderSummary {
     quantity: number;
     unitPriceMinor: number;
     totalMinor: number;
-    collectionSnapshot: { name: string };
+    collectionSnapshot: { name?: string } | null;
+    collection?: { name: string; slug: string } | null;
   }>;
 }
 
@@ -81,16 +82,23 @@ export default async function CheckoutSuccessPage({
         <p className="m-0 mb-3 font-sans text-xs uppercase tracking-[0.18em] text-neutral-500">
           What you ordered
         </p>
-        {order.items.map((item, idx) => (
-          <div key={idx} className="flex items-baseline justify-between border-b border-cream-200 py-2">
-            <span className="font-display text-lg text-maroon-600">
-              {item.quantity} × {item.collectionSnapshot.name}
-            </span>
-            <span className="font-sans text-base text-neutral-800">
-              {fmt.format(item.totalMinor / 100)}
-            </span>
-          </div>
-        ))}
+        {order.items.map((item, idx) => {
+          const name =
+            item.collection?.name ?? item.collectionSnapshot?.name ?? "Gift collection";
+          return (
+            <div
+              key={idx}
+              className="flex items-baseline justify-between border-b border-cream-200 py-2"
+            >
+              <span className="font-display text-lg text-maroon-600">
+                {item.quantity} × {name}
+              </span>
+              <span className="font-sans text-base text-neutral-800">
+                {fmt.format(item.totalMinor / 100)}
+              </span>
+            </div>
+          );
+        })}
         <div className="mt-3 flex items-baseline justify-between">
           <span className="font-sans text-base font-semibold text-neutral-800">Total</span>
           <span className="font-display text-xl font-semibold text-maroon-600">
@@ -102,9 +110,14 @@ export default async function CheckoutSuccessPage({
         </div>
       </div>
 
-      <Link href="/account/orders">
-        <Button>View your orders</Button>
-      </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link href={`/account/orders/gift/${encodeURIComponent(order.reference)}`}>
+          <Button>View this order</Button>
+        </Link>
+        <Link href="/account/orders">
+          <Button variant="secondary">All your orders</Button>
+        </Link>
+      </div>
     </AuthShell>
   );
 }

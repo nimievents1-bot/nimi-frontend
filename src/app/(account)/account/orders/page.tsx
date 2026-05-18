@@ -17,7 +17,11 @@ interface GiftOrder {
   totalMinor: number;
   currency: string;
   createdAt: string;
-  items: Array<{ quantity: number; collectionSnapshot: { name: string } }>;
+  items: Array<{
+    quantity: number;
+    collectionSnapshot: { name?: string } | null;
+    collection?: { name: string; slug: string } | null;
+  }>;
 }
 
 interface PastryOrderSummary {
@@ -204,7 +208,14 @@ export default async function CustomerOrdersPage() {
                   <tbody className="font-sans text-sm">
                     {giftOrders.map((o) => (
                       <tr key={o.id} className="border-t border-cream-200">
-                        <td className="px-4 py-3 font-mono text-neutral-700">{o.reference}</td>
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/account/orders/gift/${encodeURIComponent(o.reference)}`}
+                            className="font-mono text-neutral-700 underline underline-offset-4 hover:text-orange-700"
+                          >
+                            {o.reference}
+                          </Link>
+                        </td>
                         <td className="px-4 py-3 text-neutral-500">
                           {new Date(o.createdAt).toLocaleDateString()}
                         </td>
@@ -215,7 +226,13 @@ export default async function CustomerOrdersPage() {
                         </td>
                         <td className="px-4 py-3 text-neutral-800">
                           {o.items
-                            .map((i) => `${i.quantity} × ${i.collectionSnapshot.name}`)
+                            .map((i) => {
+                              const name =
+                                i.collection?.name ??
+                                i.collectionSnapshot?.name ??
+                                "Gift collection";
+                              return `${i.quantity} × ${name}`;
+                            })
                             .join("; ")}
                         </td>
                         <td className="px-4 py-3 text-right font-display text-base text-maroon-600">
