@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useId, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Wordmark } from "@/components/brand/NimiPotMark";
 import { Stamp } from "@/components/primitives/Stamp";
@@ -46,8 +47,17 @@ export function MobileMenu({
   footer,
 }: Props) {
   const [open, setOpen] = useState(false);
+  // `mounted` gates the portal call. createPortal requires a real DOM
+  // node (document.body), which doesn't exist during SSR. We render
+  // nothing for the overlay on the server pass and hydrate the portal
+  // in once the client takes over — keeps SSR + hydration consistent.
+  const [mounted, setMounted] = useState(false);
   const drawerId = useId();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close on route change.
   useEffect(() => {
@@ -55,17 +65,41 @@ export function MobileMenu({
   }, [pathname]);
 
   // Escape to close + lock body scroll while open.
+  //
+  // We also lock the *scroll position* of the body in place using
+  // `position: fixed` + a saved `top` value. Plain `overflow: hidden`
+  // on body works on desktop but iOS Safari ignores it and lets the
+  // background page rubber-band. Pinning `top` to the negative of the
+  // current scrollY fully freezes the page; we restore both on close.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    const savedScrollY = window.scrollY;
+    const body = document.body;
+    const previous = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${savedScrollY}px`;
+    body.style.width = "100%";
+
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previousOverflow;
+      body.style.overflow = previous.overflow;
+      body.style.position = previous.position;
+      body.style.top = previous.top;
+      body.style.width = previous.width;
+      // Restore the scroll position after the inline styles are gone
+      // so the page lands exactly where the user opened the menu.
+      window.scrollTo(0, savedScrollY);
     };
   }, [open]);
 
@@ -115,8 +149,19 @@ export function MobileMenu({
         </svg>
       </button>
 
-      {/* Overlay + drawer. Only rendered when open so unused DOM stays light. */}
-      {open ? (
+      {/*
+        Overlay + drawer, rendered via React Portal at document.body.
+        Why the portal: the parent <header> uses `backdrop-blur`, which
+        applies a `backdrop-filter` and creates a new CSS containing
+        block. Without the portal, any `position: fixed` descendant
+        would anchor to the header (not the viewport) — on mobile this
+        showed up as a drawer that "opened further down the page"
+        wherever the header was scrolled to. Escaping the header
+        subtree fixes the anchoring once and for all.
+        Only rendered when open so unused DOM stays light.
+      */}
+      {mounted && open
+        ? createPortal(
         <div
           className="fixed inset-0 z-[60]"
           aria-modal="true"
@@ -201,8 +246,10 @@ export function MobileMenu({
 
             {footer ? <div className="mt-6">{footer}</div> : null}
           </nav>
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

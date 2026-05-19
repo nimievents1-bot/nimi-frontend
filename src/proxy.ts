@@ -5,15 +5,17 @@ import { NextResponse, type NextRequest } from "next/server";
  * before any page renders:
  *
  *   1. **Auto-refresh** the access cookie. The access token (`nimi_at`)
- *      carries a 15-minute TTL; once it expires, server components
- *      treat the user as anonymous and protected pages bounce them to
- *      `/login`. The refresh cookie (`nimi_rt`) is valid for 30 days,
- *      so this proxy silently exchanges a soon-to-expire access token
- *      for a fresh one and rewrites the incoming request's `cookie`
- *      header so the very same render sees the new value. Result: the
- *      user effectively stays signed in for the refresh-token window
- *      with no perceptible interruption — a hard page refresh no
- *      longer logs them out.
+ *      carries a 24-hour TTL by default; once it expires, server
+ *      components treat the user as anonymous and protected pages
+ *      bounce them to `/login`. The refresh cookie (`nimi_rt`) is
+ *      configured to ~10 years (`JWT_REFRESH_TTL`), and each
+ *      successful refresh rotates the underlying DB row to a fresh
+ *      full-TTL expiry, so a returning visitor stays signed in
+ *      indefinitely until they explicitly sign out. The proxy
+ *      silently exchanges a soon-to-expire access token for a fresh
+ *      one and rewrites the incoming request's `cookie` header so
+ *      the very same render sees the new value — a hard page refresh
+ *      never logs them out.
  *
  *   2. **Route protection** for the authenticated route groups
  *      (`/account/*`, `/admin/*`). If the visitor lands there without
