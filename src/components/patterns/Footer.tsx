@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { NewsletterForm } from "./NewsletterForm";
+import { SocialLinks } from "./SocialLinks";
 
 const services = [
   { label: "Catering", href: "/catering" },
@@ -57,6 +58,15 @@ export function Footer() {
           <span className="inline-flex items-center gap-2 rounded-md bg-[#7BB73C] px-3 py-2 font-sans text-sm font-extrabold tracking-wide text-[#1A2D0E]">
             ★★★★★ Very good
           </span>
+
+          {/* Social row — sits below the hygiene chip so the column
+              reads "credentials, then community". Icon-only here
+              because the column is narrow; the contact page renders
+              the full handle text. */}
+          <h5 className="mb-3 mt-8 font-sans text-xs font-bold uppercase tracking-[0.26em] text-maroon-700">
+            Follow us
+          </h5>
+          <SocialLinks tone="light" />
         </div>
       </div>
 

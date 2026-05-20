@@ -1,6 +1,7 @@
 import { type Metadata } from "next";
 
 import { Hero } from "@/components/patterns/Hero";
+import { SocialLinks } from "@/components/patterns/SocialLinks";
 import { heroBackground, images } from "@/lib/images";
 
 export const metadata: Metadata = {
@@ -48,6 +49,15 @@ export default function AboutPage() {
               Whether you're ordering a single gift box or planning a wedding for two hundred
               guests, you'll get the same answer when you call: <em>what do you need?</em>
             </p>
+
+            {/* Social — soft footer at the end of the founder story.
+                The voice of the about page is intimate, so the
+                section heading is "Stay close" rather than the
+                more transactional "Follow us" used in the footer. */}
+            <p className="mt-8 mb-3 font-sans text-xs font-bold uppercase tracking-[0.26em] text-maroon-700">
+              Stay close
+            </p>
+            <SocialLinks tone="light" withLabels />
           </div>
         </div>
       </section>

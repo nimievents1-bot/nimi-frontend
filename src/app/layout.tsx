@@ -60,7 +60,20 @@ export const metadata: Metadata = {
     title: "Nimi Events — Catering, Event Planning, Gifting",
     description: "Where good food gathers.",
   },
+  // Twitter card metadata — `creator`/`site` use a placeholder since
+  // the brand isn't on X. The card itself still renders correctly
+  // when an Instagram/TikTok link is shared on platforms that
+  // respect Twitter card meta (Slack, Discord, iMessage previews).
   twitter: { card: "summary_large_image" },
+  // Surfaces both social profiles to search engines and link-preview
+  // tools (LinkedIn, etc.) as alternate brand identities — useful
+  // for entity-graph reconciliation and "see also" suggestions.
+  other: {
+    "og:see_also": [
+      "https://www.instagram.com/nimi_events",
+      "https://www.tiktok.com/@nimi.events",
+    ],
+  },
   robots: { index: true, follow: true },
 };
 
