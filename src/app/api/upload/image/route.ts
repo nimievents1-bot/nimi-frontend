@@ -1,5 +1,6 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 
 import { getSessionUser } from "@/lib/auth";
 import { serverEnv } from "@/lib/env";
@@ -19,7 +20,8 @@ import { serverEnv } from "@/lib/env";
  *   - Auth: requires an admin session (OWNER / EDITOR). Customers can't
  *     upload images. SUPPORT is excluded because the role isn't expected
  *     to mutate the catalog.
- *   - Validation: MIME type whitelist + 5 MB size cap.
+ *   - Validation: MIME type whitelist + 15 MB upload cap (the
+ *     pipeline re-encodes to a much smaller WebP before storing).
  *   - Filename: random uuid + a sanitised extension; the original name
  *     is discarded so user-supplied filenames can never be attacker bait
  *     (path traversal, polyglot tricks, XSS via Content-Disposition).
@@ -49,8 +51,31 @@ const ALLOWED_MIME = new Set([
   "image/avif",
 ]);
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+/**
+ * Generous upload cap — we accept up to 15 MB from the client because
+ * camera-roll photos and casual phone uploads commonly land in the
+ * 4–10 MB range. The pipeline below re-encodes everything to a much
+ * smaller WebP before it ever reaches R2, so the limit here is about
+ * what the SERVER will spend memory on, not what we want to keep.
+ */
+const MAX_BYTES = 15 * 1024 * 1024;
 const ADMIN_ROLES = new Set(["OWNER", "EDITOR"]);
+
+/**
+ * Target dimensions for the re-encoded image. 1600px on the long edge
+ * is plenty for full-bleed hero use and any high-DPR card; anything
+ * larger is bytes spent for no visible benefit on phone screens.
+ * Image is fit "inside" the bounding box so the original aspect ratio
+ * is preserved — we never crop a customer photo blindly.
+ */
+const TARGET_MAX_EDGE_PX = 1600;
+
+/**
+ * WebP quality used by the re-encode. 78 is a sweet spot — visually
+ * indistinguishable from the source for food photography while
+ * yielding ~70-80% size reductions over the original JPEG.
+ */
+const TARGET_WEBP_QUALITY = 78;
 
 /**
  * Build an R2 client lazily so a misconfigured env doesn't crash the
@@ -136,25 +161,64 @@ export async function POST(request: Request) {
     );
   }
 
+  // ---- Re-encode through sharp ----
+  // Pipeline goals (in order of priority):
+  //   1. Cap the long edge at TARGET_MAX_EDGE_PX so we never store
+  //      anything larger than what a phone screen could possibly use.
+  //      `fit: "inside"` preserves the original aspect ratio — we
+  //      don't crop the customer's photo.
+  //   2. Strip EXIF, GPS, colour-profile, and other metadata so we
+  //      don't leak the photographer's home coordinates into a public
+  //      bucket. `withMetadata` is intentionally NOT called.
+  //   3. Recompress as WebP at TARGET_WEBP_QUALITY. WebP is universally
+  //      supported by every browser we ship to (Chrome, Safari, Edge,
+  //      Firefox) and shrinks food photography by 70-80 % vs JPEG.
+  //
+  // Any sharp failure here is surfaced to the admin as a 400 — usually
+  // a corrupt / truncated upload, not a server bug, and the operator
+  // can retry without paging anyone.
+  let optimisedBytes: Buffer;
+  try {
+    const sourceBytes = Buffer.from(await file.arrayBuffer());
+    // `failOn: "none"` lets sharp tolerate slightly-malformed images
+    // rather than refusing outright. We still get an error for
+    // genuinely unreadable input.
+    optimisedBytes = await sharp(sourceBytes, { failOn: "none" })
+      .rotate() // honour EXIF orientation before stripping metadata
+      .resize({
+        width: TARGET_MAX_EDGE_PX,
+        height: TARGET_MAX_EDGE_PX,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: TARGET_WEBP_QUALITY, effort: 4 })
+      .toBuffer();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[upload/image] sharp re-encode failed", err);
+    return NextResponse.json(
+      {
+        error:
+          "We couldn't read that image. Try saving it as PNG, JPG, or WebP and uploading again.",
+      },
+      { status: 400 },
+    );
+  }
+
   // ---- Filename ----
-  // Discard the original name entirely. Build an attacker-resistant key:
-  // pastries/<uuid>.<safe-ext>. The extension is whitelisted to lowercase
-  // a-z0-9 with a 2–5 char length so we never end up with anything like
-  // "file.php" or "..%2F..%2Fetc%2Fpasswd".
-  const rawExt = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : "";
-  const safeExt = rawExt && /^[a-z0-9]{2,5}$/.test(rawExt) ? rawExt : "bin";
-  const key = `pastries/${crypto.randomUUID()}.${safeExt}`;
+  // Always use .webp regardless of the input format — the pipeline
+  // above re-encodes everything to WebP. The pastries/ prefix groups
+  // pastry-catalog assets in R2 so they're easy to audit / lifecycle.
+  const key = `pastries/${crypto.randomUUID()}.webp`;
 
   // ---- Upload ----
   try {
-    const bytes = new Uint8Array(await file.arrayBuffer());
-
     await client.send(
       new PutObjectCommand({
         Bucket: env.R2_BUCKET!,
         Key: key,
-        Body: bytes,
-        ContentType: file.type,
+        Body: optimisedBytes,
+        ContentType: "image/webp",
         // 1 year cache. Filenames are content-addressed by uuid so they
         // never collide; replacing an image creates a new key anyway.
         CacheControl: "public, max-age=31536000, immutable",
@@ -164,7 +228,14 @@ export async function POST(request: Request) {
     // R2_PUBLIC_URL had any trailing slashes stripped in env.ts.
     const url = `${env.R2_PUBLIC_URL}/${key}`;
 
-    return NextResponse.json({ url, contentType: file.type });
+    return NextResponse.json({
+      url,
+      contentType: "image/webp",
+      // Surfaced so the admin UI can show "shrunk 4.2 MB → 280 KB"
+      // if it wants to celebrate the win. Optional.
+      originalBytes: file.size,
+      optimisedBytes: optimisedBytes.byteLength,
+    });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[upload/image] R2 PutObject failed", err);

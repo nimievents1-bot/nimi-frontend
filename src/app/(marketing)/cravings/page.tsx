@@ -238,7 +238,18 @@ export default async function IndulgenceClubPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3">
+              {/*
+                Two layouts depending on viewport. Earlier we had a single
+                overlay-style design at every breakpoint — on phones the
+                description got rendered ON TOP of the image inside a
+                gradient and bled into the lighter half of the image,
+                leaving it unreadable. The split below keeps the
+                editorial overlay design on desktop (which has room for
+                the gradient to do its job) and switches to a stacked
+                photo-then-text layout on mobile where text always sits
+                on the cream surface in its own space.
+              */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
                 {pastries.map((item) => {
                   const isLimited =
                     Array.isArray(item.tags) && item.tags.includes("limited");
@@ -247,48 +258,75 @@ export default async function IndulgenceClubPage() {
                       key={item.id}
                       className="group relative overflow-hidden border border-cream-200 bg-cream-50"
                     >
-                      <div
-                        role="img"
-                        aria-label={
-                          item.imageAlt ?? `${item.name} — ${item.description ?? ""}`
-                        }
-                        className="aspect-square w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand group-hover:scale-105"
-                        style={
-                          item.imageUrl
-                            ? heroBackground(item.imageUrl)
-                            : { background: "linear-gradient(135deg,#ECA068,#5C1F18)" }
-                        }
-                      />
+                      <div className="relative">
+                        <div
+                          role="img"
+                          aria-label={
+                            item.imageAlt ?? `${item.name} — ${item.description ?? ""}`
+                          }
+                          className="aspect-[4/3] w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand sm:aspect-square sm:group-hover:scale-105"
+                          style={
+                            item.imageUrl
+                              ? heroBackground(item.imageUrl)
+                              : { background: "linear-gradient(135deg,#ECA068,#5C1F18)" }
+                          }
+                        />
 
-                      {/* Top-right: add-to-cart trigger. Stays compact and
-                          floats over the image so the price stays legible. */}
-                      <AddToCartButton
-                        pastryItemId={item.id}
-                        itemName={item.name}
-                        isAuthed={isAuthed}
-                      />
+                        {/* Top-right: add-to-cart trigger. Floats over
+                            the image on every breakpoint — the pill has
+                            its own contrast surface so it stays legible
+                            even on dark photography. */}
+                        <AddToCartButton
+                          pastryItemId={item.id}
+                          itemName={item.name}
+                          isAuthed={isAuthed}
+                        />
 
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-maroon-700/95 via-maroon-700/60 to-transparent p-4 pt-10">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <h3 className="m-0 font-display text-lg font-medium text-cream-50">
+                        {/* Desktop-only editorial overlay. Hidden on
+                            phones because the description gets a real
+                            text block below the image instead. */}
+                        <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-maroon-700/95 via-maroon-700/60 to-transparent p-4 pt-10 sm:block">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <h3 className="m-0 font-display text-lg font-medium text-cream-50">
+                              {item.name}
+                            </h3>
+                            <span className="font-display text-sm font-medium text-cream-50/90">
+                              {fmtGBP(item.priceMinor, item.currency)}
+                            </span>
+                          </div>
+                          {item.description ? (
+                            <p className="m-0 font-sans text-xs text-cream-50/85">
+                              {item.description}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        {isLimited ? (
+                          <span className="absolute left-3 top-3 rounded-pill bg-orange-500 px-2 py-1 font-sans text-2xs font-semibold uppercase tracking-wider text-cream-50">
+                            Limited batch
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {/* Mobile-only text block. Lives BELOW the image
+                          on the cream card surface so the description
+                          has proper contrast and breathing room. Hidden
+                          at sm+ where the overlay above takes over. */}
+                      <div className="block px-4 py-4 sm:hidden">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <h3 className="m-0 font-display text-xl font-medium text-maroon-700">
                             {item.name}
                           </h3>
-                          <span className="font-display text-sm font-medium text-cream-50/90">
+                          <span className="font-display text-lg font-medium text-orange-700">
                             {fmtGBP(item.priceMinor, item.currency)}
                           </span>
                         </div>
                         {item.description ? (
-                          <p className="m-0 font-sans text-xs text-cream-50/85">
+                          <p className="m-0 mt-2 font-sans text-sm leading-relaxed text-neutral-700">
                             {item.description}
                           </p>
                         ) : null}
                       </div>
-
-                      {isLimited ? (
-                        <span className="absolute left-3 top-3 rounded-pill bg-orange-500 px-2 py-1 font-sans text-2xs font-semibold uppercase tracking-wider text-cream-50">
-                          Limited batch
-                        </span>
-                      ) : null}
                     </article>
                   );
                 })}

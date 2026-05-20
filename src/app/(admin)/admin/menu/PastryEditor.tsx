@@ -85,10 +85,12 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
   const [success, setSuccess] = useState<string | null>(null);
 
   /**
-   * Upload a file from the local device to the Vercel Blob bucket via
-   * our `/api/upload/image` route, then plug the returned URL into the
-   * `imageUrl` field. Failure surfaces inline; the URL field stays
-   * editable so admin can paste a fallback URL if the upload errors.
+   * Upload a file from the local device to our Cloudflare R2 bucket via
+   * the `/api/upload/image` route. The server resizes (max 1600 px on
+   * the long edge), strips metadata, and re-encodes as WebP before
+   * storing — so a 5 MB camera-roll JPEG typically lands as a 200 KB
+   * WebP, fast to load on phones. Failure surfaces inline; the URL
+   * field stays editable so admin can paste a fallback URL if needed.
    */
   const onFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,7 +104,12 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
         method: "POST",
         body: formData,
       });
-      const data = (await response.json()) as { url?: string; error?: string };
+      const data = (await response.json()) as {
+        url?: string;
+        error?: string;
+        originalBytes?: number;
+        optimisedBytes?: number;
+      };
       if (!response.ok || !data.url) {
         throw new Error(data.error ?? "Upload failed.");
       }
@@ -116,6 +123,26 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
           .replace(/[-_]+/g, " ")
           .replace(/\b\w/g, (c) => c.toUpperCase());
         setImageAlt(niceName);
+      }
+      // Surface the optimisation result so the admin sees that the
+      // upload was shrunk — this is the kind of feedback that builds
+      // trust in the pipeline ("did it actually do anything?").
+      if (
+        typeof data.originalBytes === "number" &&
+        typeof data.optimisedBytes === "number" &&
+        data.originalBytes > 0
+      ) {
+        const kb = (n: number) =>
+          n >= 1024 * 1024
+            ? `${(n / 1024 / 1024).toFixed(1)} MB`
+            : `${Math.max(1, Math.round(n / 1024))} KB`;
+        const pct = Math.round(
+          (1 - data.optimisedBytes / data.originalBytes) * 100,
+        );
+        setSuccess(
+          `Image optimised: ${kb(data.originalBytes)} → ${kb(data.optimisedBytes)}` +
+            (pct > 0 ? ` (${pct}% smaller)` : ""),
+        );
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
