@@ -8,6 +8,7 @@ import { heroBackground, images } from "@/lib/images";
 
 import { AddToCartButton } from "./AddToCartButton";
 import { PlanGrid } from "./PlanGrid";
+import { TruncatedDescription } from "./TruncatedDescription";
 
 /**
  * Public pastry shape returned by `/v1/pastries`. Mirrors the API DTO.
@@ -311,10 +312,18 @@ export default async function IndulgenceClubPage() {
                       {/* Mobile-only text block. Lives BELOW the image
                           on the cream card surface so the description
                           has proper contrast and breathing room. Hidden
-                          at sm+ where the overlay above takes over. */}
+                          at sm+ where the overlay above takes over.
+
+                          Layout brief from the operator: the NAME should
+                          lead — bold, large, immediately readable. The
+                          description is collapsed to a teaser with a
+                          tappable "…" the customer can press to read
+                          the full copy (handled by TruncatedDescription).
+                          This keeps the card scannable without
+                          sacrificing the marketing copy. */}
                       <div className="block px-4 py-4 sm:hidden">
                         <div className="flex items-baseline justify-between gap-3">
-                          <h3 className="m-0 font-display text-xl font-medium text-maroon-700">
+                          <h3 className="m-0 font-display text-2xl font-semibold text-maroon-700">
                             {item.name}
                           </h3>
                           <span className="font-display text-lg font-medium text-orange-700">
@@ -322,9 +331,7 @@ export default async function IndulgenceClubPage() {
                           </span>
                         </div>
                         {item.description ? (
-                          <p className="m-0 mt-2 font-sans text-sm leading-relaxed text-neutral-700">
-                            {item.description}
-                          </p>
+                          <TruncatedDescription text={item.description} />
                         ) : null}
                       </div>
                     </article>
