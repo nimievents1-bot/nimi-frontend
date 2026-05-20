@@ -281,6 +281,11 @@ export default async function IndulgenceClubPage() {
                           pastryItemId={item.id}
                           itemName={item.name}
                           isAuthed={isAuthed}
+                          slug={item.slug}
+                          description={item.description ?? null}
+                          imageUrl={item.imageUrl ?? null}
+                          unitPriceMinor={item.priceMinor}
+                          currency={item.currency}
                         />
 
                         {/* Desktop-only editorial overlay. Hidden on

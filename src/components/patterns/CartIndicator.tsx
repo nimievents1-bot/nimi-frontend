@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
+import { readGuestCartCount } from "@/lib/guestCart";
 
 /**
  * Header-mounted cart icon with a live count badge.
@@ -16,10 +17,13 @@ import { cn } from "@/lib/cn";
  *     anywhere on the marketing site. This component closes both gaps.
  *
  * Auth model:
- *   - The /pastry-cart endpoint is JWT-guarded; anonymous users get a 401.
- *     We therefore only call it when `isAuthed` is true. Anonymous users
- *     still see the icon (so they have a path to /cart) but it links to
- *     /login first, which respects the `?next=/cart` round-trip pattern.
+ *   - Authed visitors: count comes from `/pastry-cart` (JWT-guarded
+ *     server cart).
+ *   - Anonymous visitors: count comes from `localStorage` via the
+ *     guest-cart helpers. The icon links straight to `/cart` either
+ *     way — the cart page itself knows how to render the guest cart
+ *     and prompts for sign-in only at checkout. No more pre-auth
+ *     bounce to /login the moment someone adds an item.
  *
  * Live updates:
  *   - On mount we fetch the cart once.
@@ -57,7 +61,10 @@ export function CartIndicator({ onDark = false, isAuthed }: Props) {
 
   const refresh = useCallback(async () => {
     if (!isAuthed) {
-      setCount(null);
+      // Anonymous visitors: source of truth is localStorage. Reads
+      // are SSR-safe (return 0 server-side) so we don't need an
+      // extra `typeof window` check here.
+      setCount(readGuestCartCount());
       return;
     }
     try {
@@ -85,16 +92,17 @@ export function CartIndicator({ onDark = false, isAuthed }: Props) {
     };
   }, [refresh]);
 
-  // Anonymous users land on /login?next=/cart so the post-auth jump
-  // brings them straight back to their (empty) cart.
-  const href = isAuthed ? "/cart" : "/login?next=/cart";
-  const showBadge = isAuthed && (count ?? 0) > 0;
+  // Anonymous visitors can open the cart too — the cart page now
+  // hydrates from localStorage and prompts for sign-in only at the
+  // moment of checkout. No more `?next=/login` bounce on the cart
+  // icon itself.
+  const href = "/cart";
+  const showBadge = (count ?? 0) > 0;
   const labelCount = count ?? 0;
-  const ariaLabel = isAuthed
-    ? labelCount === 1
+  const ariaLabel =
+    labelCount === 1
       ? "Open cart (1 item)"
-      : `Open cart (${labelCount} items)`
-    : "Sign in to view your cart";
+      : `Open cart (${labelCount} items)`;
 
   return (
     <Link

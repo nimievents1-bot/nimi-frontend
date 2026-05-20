@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -73,6 +73,17 @@ type FormValues = z.infer<typeof Schema>;
 
 export function SignupForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  // Honour `?next=…` exactly like the login form does, so a customer
+  // who landed on signup via the cart's "Sign up instead" link is
+  // taken back to /cart for the guest-cart sync, rather than to the
+  // generic /account dashboard. We only accept relative paths to
+  // avoid open-redirect abuse via a crafted `next=https://evil`.
+  const nextRaw = params.get("next");
+  const next =
+    nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//")
+      ? nextRaw
+      : null;
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -102,7 +113,10 @@ export function SignupForm() {
             : {}),
         },
       });
-      router.push("/account?status=welcome");
+      // Respect an explicit `?next=` (e.g. /cart from the guest-cart
+       // flow) over the default welcome page. New customers signing up
+       // mid-checkout should land back at their cart.
+      router.push(next ?? "/account?status=welcome");
       router.refresh();
     } catch (err) {
       setServerError(

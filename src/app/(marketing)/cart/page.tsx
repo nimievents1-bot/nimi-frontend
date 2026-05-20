@@ -5,10 +5,12 @@ import Link from "next/link";
 import { Alert } from "@/components/primitives/Alert";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
-import { requireSessionUser } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 import { CartActions } from "./CartActions";
 import { CheckoutForm } from "./CheckoutForm";
+import { GuestCartSync } from "./GuestCartSync";
+import { GuestCartView } from "./GuestCartView";
 
 export const metadata: Metadata = {
   title: "Your cart",
@@ -50,8 +52,39 @@ export default async function CartPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  await requireSessionUser();
+  // Anonymous visitors are welcome on /cart now — they can review the
+  // localStorage guest cart, change quantities, and only need to sign
+  // in at the moment they want to check out. `getSessionUser` returns
+  // null cleanly rather than throwing a redirect, so the same page
+  // serves both audiences.
+  const sessionUser = await getSessionUser();
   const { status } = await searchParams;
+
+  // ------------------------------------------------------------------
+  // Anonymous path — render the localStorage cart client-side.
+  // ------------------------------------------------------------------
+  if (!sessionUser) {
+    return (
+      <>
+        <p className="eyebrow mb-2">The Indulgence Club</p>
+        <h1 className="m-0 mb-6 font-display text-5xl font-medium text-maroon-600">
+          Your cart
+        </h1>
+        {status === "cancelled" ? (
+          <div className="mb-6 border-l-4 border-orange-500 bg-cream-100 px-6 py-4">
+            <p className="m-0 font-sans text-sm text-neutral-700">
+              Checkout was cancelled — your cart is exactly as you left it.
+            </p>
+          </div>
+        ) : null}
+        <GuestCartView />
+      </>
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // Authenticated path (below) — existing server-rendered cart.
+  // ------------------------------------------------------------------
   const cookieHeader = (await cookies()).toString();
 
   // Load cart and customer's saved profile in parallel. The profile
@@ -94,6 +127,13 @@ export default async function CartPage({
 
   return (
     <>
+      {/* If the customer just signed in with items in their localStorage
+          guest cart, this side-effect component merges them into the
+          server cart and refreshes the page. No UI — invisible by
+          design. The next render of this server component picks up
+          the merged contents from `apiFetch("/pastry-cart")` above. */}
+      <GuestCartSync />
+
       <p className="eyebrow mb-2">The Indulgence Club</p>
       <h1 className="m-0 mb-6 font-display text-5xl font-medium text-maroon-600">
         Your cart
