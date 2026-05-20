@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -61,6 +62,19 @@ export function NotificationBell({ onDark = false }: Props) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  // Where to draw the dropdown when it's portalled to <body>. Computed
+  // from the bell button's `getBoundingClientRect` whenever the panel
+  // opens (and recomputed on scroll/resize while open) — we use
+  // `position: fixed` so viewport coordinates are correct.
+  const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null);
+  // SSR-safety gate for createPortal — document.body doesn't exist
+  // during server render. We render the trigger server-side but
+  // hydrate the portal only after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Pull the full list (rows + unread count) — used on mount, on focus,
   // and when the dropdown opens.
@@ -105,16 +119,54 @@ export function NotificationBell({ onDark = false }: Props) {
     if (open) void refreshList();
   }, [open, refreshList]);
 
-  // Close on outside click + ESC.
+  // Re-anchor the dropdown to the bell whenever it opens, and keep it
+  // in sync while open (scroll, resize, orientation change). We use
+  // viewport coordinates because the dropdown is portalled to
+  // <body> with `position: fixed` to escape the header's stacking
+  // context — anything else and it'd be trapped behind the page
+  // content the moment it tried to overflow the header's box.
+  useEffect(() => {
+    if (!open) return;
+    const reposition = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setAnchor({
+        top: rect.bottom + 8, // 8px gap below the bell
+        right: window.innerWidth - rect.right,
+      });
+    };
+    reposition();
+    window.addEventListener("scroll", reposition, { passive: true });
+    window.addEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [open]);
+
+  // Close on outside click + ESC. We need to allow clicks INSIDE the
+  // portalled panel (which lives at <body>, not inside wrapperRef),
+  // so we tag the panel with `data-notification-panel` and let those
+  // through.
   useEffect(() => {
     if (!open) return;
     const onDocMouseDown = (event: MouseEvent) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (wrapperRef.current && wrapperRef.current.contains(target)) return;
+      // Allow clicks inside the portalled panel (resolved by walking
+      // up from the click target looking for our marker attribute).
+      let el: Node | null = target;
+      while (el && el !== document) {
+        if (
+          el instanceof HTMLElement &&
+          el.getAttribute("data-notification-panel") === "true"
+        ) {
+          return;
+        }
+        el = el.parentNode;
       }
+      setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -161,6 +213,7 @@ export function NotificationBell({ onDark = false }: Props) {
   return (
     <div ref={wrapperRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={ariaLabel}
@@ -202,11 +255,33 @@ export function NotificationBell({ onDark = false }: Props) {
         ) : null}
       </button>
 
-      {open ? (
+      {/*
+        Dropdown panel — portalled to <body> with `position: fixed` so
+        it escapes the sticky header's stacking context and is never
+        clipped or overlapped by page content. Position is anchored
+        to the bell button via the `reposition` effect above; we
+        recompute on scroll/resize to keep it pinned.
+        Why a portal and not just a higher z-index: the parent
+        <header> uses `backdrop-blur`, which creates its own
+        stacking context. Any z-index applied inside that context
+        is capped at the header's outer z-40 from the rest of the
+        page's perspective — so page content with `position: relative`
+        was paining straight through the dropdown. Rendering at body
+        sidesteps the trap entirely.
+      */}
+      {mounted && open && anchor
+        ? createPortal(
         <div
+          data-notification-panel="true"
           role="menu"
           aria-label="Notifications"
-          className="absolute right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] border border-cream-200 bg-paper shadow-2xl"
+          style={{
+            position: "fixed",
+            top: anchor.top,
+            right: anchor.right,
+            zIndex: 80,
+          }}
+          className="w-80 max-w-[calc(100vw-2rem)] border border-cream-200 bg-paper shadow-2xl"
         >
           <header className="flex items-center justify-between border-b border-cream-200 bg-cream-50 px-4 py-3">
             <p className="m-0 font-display text-lg text-maroon-600">Notifications</p>
@@ -293,8 +368,10 @@ export function NotificationBell({ onDark = false }: Props) {
               })}
             </ul>
           )}
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
