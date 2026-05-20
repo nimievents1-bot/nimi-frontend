@@ -65,20 +65,28 @@ export default async function CartPage({
   // ------------------------------------------------------------------
   if (!sessionUser) {
     return (
-      <>
-        <p className="eyebrow mb-2">The Indulgence Club</p>
-        <h1 className="m-0 mb-6 font-display text-5xl font-medium text-maroon-600">
-          Your cart
-        </h1>
-        {status === "cancelled" ? (
-          <div className="mb-6 border-l-4 border-orange-500 bg-cream-100 px-6 py-4">
-            <p className="m-0 font-sans text-sm text-neutral-700">
-              Checkout was cancelled — your cart is exactly as you left it.
-            </p>
-          </div>
-        ) : null}
-        <GuestCartView />
-      </>
+      // Section wrapper mirrors every other marketing page (catering,
+      // cravings, gifting, etc.) — gives the page proper top breathing
+      // room under the sticky header, the page gutter on phones, and
+      // a centred max-width column on desktop. Without it the
+      // "THE INDULGENCE CLUB" eyebrow butted right against the chrome
+      // on mobile.
+      <section className="px-page-gutter py-section-y">
+        <div className="mx-auto max-w-page">
+          <p className="eyebrow mb-2">The Indulgence Club</p>
+          <h1 className="m-0 mb-6 font-display text-5xl font-medium text-maroon-600">
+            Your cart
+          </h1>
+          {status === "cancelled" ? (
+            <div className="mb-6 border-l-4 border-orange-500 bg-cream-100 px-6 py-4">
+              <p className="m-0 font-sans text-sm text-neutral-700">
+                Checkout was cancelled — your cart is exactly as you left it.
+              </p>
+            </div>
+          ) : null}
+          <GuestCartView />
+        </div>
+      </section>
     );
   }
 
@@ -126,7 +134,12 @@ export default async function CartPage({
   const empty = !view || view.lines.length === 0;
 
   return (
-    <>
+    // Same section wrapper as the anonymous path above — keeps the
+    // page in lockstep with the rest of the marketing layout
+    // (gutter on phones, centred column on desktop, proper top
+    // padding under the sticky header).
+    <section className="px-page-gutter py-section-y">
+      <div className="mx-auto max-w-page">
       {/* If the customer just signed in with items in their localStorage
           guest cart, this side-effect component merges them into the
           server cart and refreshes the page. No UI — invisible by
@@ -287,6 +300,7 @@ export default async function CartPage({
           </aside>
         </div>
       ) : null}
-    </>
+      </div>
+    </section>
   );
 }

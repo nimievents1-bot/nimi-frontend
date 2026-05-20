@@ -57,7 +57,10 @@ export default async function CartSuccessPage({
   }
 
   return (
-    <div className="mx-auto max-w-xl py-10">
+    // Wrap in the standard page-gutter so the content doesn't butt
+    // against the screen edge on phones, and align vertical padding
+    // with the rest of the marketing pages.
+    <div className="mx-auto max-w-xl px-page-gutter py-section-y">
       <p className="eyebrow mb-3">Confirmed</p>
       <h1 className="m-0 mb-4 font-display text-5xl font-medium text-maroon-600">
         Thank you.
