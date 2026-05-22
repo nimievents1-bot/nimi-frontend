@@ -41,11 +41,19 @@ const navItems = [
  *     fully-transparent look for cross-section readability.
  *
  * Responsive behaviour:
- *   - Below md (768px): nav and stamp hide; a hamburger trigger replaces
- *     them and opens a full-width slide-down drawer (`MobileMenu`).
- *     The cart icon is left visible at all sizes — it's the most
- *     frequent action on the marketing surface once items are added.
- *   - md and up: full editorial nav with the cart icon, stamp pinned right.
+ *   - Below lg (1024px): nav and stamp hide; a hamburger trigger replaces
+ *     them and opens a full-width slide-down drawer (`MobileMenu`). This
+ *     range covers phones AND iPad portrait (820-834px) — the editorial
+ *     7-item nav simply doesn't fit alongside the wordmark, sign-in
+ *     link, bell, cart, and stamp until you have ~1200px of horizontal
+ *     room. The cart and bell icons stay visible on the mobile cluster
+ *     at every size — cart is the most frequent marketing action once
+ *     items are added.
+ *   - lg (1024-1279px): full nav with cart + bell + sign in, no stamp.
+ *     Tightened gaps so the 7 items + right cluster fit on iPad
+ *     landscape and small laptops without scrunching.
+ *   - xl and up (1280px+): the original generous layout — wider gaps
+ *     and the italic-serif "Get in Touch" stamp pinned right.
  *
  * Server component: reads the session so it can tell the cart indicator
  * whether the user is authed (anonymous users get an icon that links to
@@ -72,19 +80,22 @@ export async function Header({ onDark = false, current = "" }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 grid items-center gap-4 px-page-gutter py-4 md:gap-8 md:py-5",
-        // Mobile: wordmark left, cart + hamburger right.
-        // Desktop: wordmark / nav / cart + stamp.
-        "grid-cols-[1fr_auto] md:grid-cols-[auto_1fr_auto]",
+        "sticky top-0 z-40 grid items-center gap-4 px-page-gutter py-4 lg:gap-6 lg:py-5 xl:gap-8",
+        // Phones + iPad portrait: wordmark left, cart + hamburger right.
+        // lg and up: wordmark / nav / right cluster.
+        "grid-cols-[1fr_auto] lg:grid-cols-[auto_1fr_auto]",
         surface,
       )}
     >
       <Wordmark withTag onDark={onDark} />
 
-      {/* Desktop nav — hidden below md. */}
+      {/* Desktop nav — hidden below lg so iPad portrait gets the
+          hamburger drawer instead of an overflowing 7-item editorial
+          nav. Gap tightens on lg, opens up again at xl where the
+          stamp also reappears. */}
       <nav
         aria-label="Primary"
-        className="hidden justify-center gap-x-8 md:flex lg:gap-x-12"
+        className="hidden justify-center gap-x-5 lg:flex xl:gap-x-10"
       >
         {navItems.map((item) => {
           const active =
@@ -111,7 +122,7 @@ export async function Header({ onDark = false, current = "" }: HeaderProps) {
           - Signed-in visitors see "Account" instead, pointing at /account.
             Staff (OWNER/EDITOR/SUPPORT) hitting /account get server-side
             redirected to /admin, so this single link works for everyone. */}
-      <div className="hidden items-center gap-5 md:flex">
+      <div className="hidden items-center gap-3 lg:flex xl:gap-5">
         {isAuthed ? (
           <Link
             href="/account"
@@ -144,14 +155,22 @@ export async function Header({ onDark = false, current = "" }: HeaderProps) {
             "0 unread" badge for visitors who'll never have inbox. */}
         {isAuthed ? <NotificationBell onDark={onDark} /> : null}
         <CartIndicator onDark={onDark} isAuthed={isAuthed} />
-        <Stamp onDark={onDark} />
+        {/* Stamp is generous in width — reserve it for xl+ where the
+            nav, right cluster, and stamp all coexist comfortably. On
+            lg (iPad landscape, small laptops) we drop the stamp so the
+            7-item nav has enough breathing room. */}
+        <div className="hidden xl:block">
+          <Stamp onDark={onDark} />
+        </div>
       </div>
 
-      {/* Mobile-only right cluster: cart icon stays visible, hamburger to its right.
-          Sign in / Account is folded into the drawer items so the cluster
-          stays compact. Bell appears for signed-in users only, sitting
-          between the cart and the hamburger. */}
-      <div className="flex items-center gap-2 md:hidden">
+      {/* Mobile + iPad-portrait right cluster: cart icon stays visible,
+          hamburger to its right. Sign in / Account is folded into the
+          drawer items so the cluster stays compact. Bell appears for
+          signed-in users only, sitting between the cart and the
+          hamburger. Hidden at lg+ where the full desktop cluster
+          above takes over. */}
+      <div className="flex items-center gap-2 lg:hidden">
         {isAuthed ? <NotificationBell onDark={onDark} /> : null}
         <CartIndicator onDark={onDark} isAuthed={isAuthed} />
         <MobileMenu
