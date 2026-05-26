@@ -114,8 +114,18 @@ export default async function CustomerOrdersPage() {
         </div>
       ) : (
         <div className="space-y-12">
+          {/*
+            Each section carries an `id` so the account dashboard cards
+            can deep-link straight to them via URL hash
+            (e.g. `/account/orders#gift-orders`). Without the anchors
+            the dashboard's "Gifting" card would visually land users on
+            the pastry-orders table (which renders first), even though
+            their gift orders are on the same page just below — read
+            as "the gifting card sends me to indulgence orders" by
+            anyone who isn't reading section headings carefully.
+          */}
           {/* Pastry orders section */}
-          <section>
+          <section id="pastry-orders" className="scroll-mt-24">
             <div className="mb-4 flex items-baseline justify-between gap-3">
               <h2 className="m-0 font-display text-2xl font-medium text-maroon-600">
                 Pastry orders
@@ -177,7 +187,7 @@ export default async function CustomerOrdersPage() {
           </section>
 
           {/* Gift orders section */}
-          <section>
+          <section id="gift-orders" className="scroll-mt-24">
             <div className="mb-4 flex items-baseline justify-between gap-3">
               <h2 className="m-0 font-display text-2xl font-medium text-maroon-600">
                 Gift orders

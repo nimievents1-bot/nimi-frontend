@@ -76,11 +76,20 @@ export default async function AccountPage({
           href="/account/bookings"
           mediaStyle={{ background: "linear-gradient(135deg,#FAE3D1,#E48039)" }}
         />
+        {/*
+          Deep-link to the gift-orders section of the unified orders page.
+          Without the `#gift-orders` hash, the page opens scrolled to the
+          top where the Pastry orders section is rendered first — which
+          means a customer clicking the "Gifting" card visually lands on
+          "indulgence orders" rather than their gift orders, even though
+          the gift orders ARE on the same page just below. The hash tells
+          the browser to scroll the matching section into view on load.
+        */}
         <Card
           eyebrow="Gifting"
           title="Gift orders"
           description="Order history, design approvals, and reorder shortcuts."
-          href="/account/orders"
+          href="/account/orders#gift-orders"
           mediaStyle={{ background: "linear-gradient(135deg,#ECA068,#92381A)" }}
         />
         <Card
