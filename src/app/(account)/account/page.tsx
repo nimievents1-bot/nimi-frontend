@@ -68,6 +68,16 @@ export default async function AccountPage({
         </Alert>
       ) : null}
 
+      {/*
+        Dashboard cards. Each lands the customer on a "browse what's
+        available" surface inside their account context — the
+        operator's framing is that this dashboard should make
+        ordering frictionless, with secondary access to history.
+        Every destination page then carries a prominent button back
+        to the customer's existing records (orders / enquiries /
+        subscription) so the journey feels coherent in either
+        direction.
+      */}
       <div className="mt-8 grid gap-6 md:grid-cols-3">
         <Card
           eyebrow="Bookings"
@@ -77,26 +87,34 @@ export default async function AccountPage({
           mediaStyle={{ background: "linear-gradient(135deg,#FAE3D1,#E48039)" }}
         />
         {/*
-          Deep-link to the gift-orders section of the unified orders page.
-          Without the `#gift-orders` hash, the page opens scrolled to the
-          top where the Pastry orders section is rendered first — which
-          means a customer clicking the "Gifting" card visually lands on
-          "indulgence orders" rather than their gift orders, even though
-          the gift orders ARE on the same page just below. The hash tells
-          the browser to scroll the matching section into view on load.
+          Lands on the account-context gifting browse page where the
+          customer sees every available collection (the same set the
+          public `/gifting` page lists) with one-tap entry into the
+          existing checkout flow. A "View my gift orders" button at
+          the top of that page deep-links into the orders surface
+          for customers who came here looking for their history
+          rather than to browse.
         */}
         <Card
           eyebrow="Gifting"
-          title="Gift orders"
-          description="Order history, design approvals, and reorder shortcuts."
-          href="/account/orders#gift-orders"
+          title="Browse gift collections"
+          description="Pick out a gift box for a corporate event, wedding or private celebration."
+          href="/account/gifting"
           mediaStyle={{ background: "linear-gradient(135deg,#ECA068,#92381A)" }}
         />
+        {/*
+          Lands on the account-context pastry menu — what credits
+          can buy right now — with a "View my subscription" button
+          surfaced prominently for customers who came here for plan
+          management. The pastry-menu-first framing matches the
+          operator's intent: most Indulgence Club visits are "what
+          can I order this week", not "what's my balance".
+        */}
         <Card
           eyebrow="Cravings"
-          title="Pastry subscription"
-          description="Plan, balance, transactions — and pause when life gets busy."
-          href="/account/subscription"
+          title="Order pastries"
+          description="Browse the kitchen menu and add to cart. Indulgence Credits apply automatically."
+          href="/account/pastries"
           mediaStyle={{ background: "linear-gradient(135deg,#DDA092,#5C1F18)" }}
         />
       </div>

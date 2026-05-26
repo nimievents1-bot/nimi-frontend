@@ -62,6 +62,12 @@ const ACCOUNT_NAV: ReadonlyArray<NavItem> = [
   { label: "Dashboard", href: "/account", section: "Overview" },
 
   { label: "Bookings", href: "/account/bookings", section: "My activity" },
+  // "Gifting" and "Pastries" are browse-first surfaces that land on
+  // available items with secondary access to history. "Orders" and
+  // "Subscription" remain available below for customers who want to
+  // go straight to their records instead.
+  { label: "Gifting", href: "/account/gifting", section: "My activity" },
+  { label: "Pastries", href: "/account/pastries", section: "My activity" },
   { label: "Orders", href: "/account/orders", section: "My activity" },
   { label: "Subscription", href: "/account/subscription", section: "My activity" },
 

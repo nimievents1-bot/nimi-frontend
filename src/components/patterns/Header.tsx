@@ -16,13 +16,23 @@ interface HeaderProps {
   current?: string;
 }
 
+// Top-level nav. Order matters — left-to-right is the customer's
+// expected discovery path. "Pastries" sits next to "Indulgence" so
+// the two food-product surfaces appear together; the subscription
+// pitch ("Indulgence") and the one-off shop ("Pastries") read as
+// related siblings rather than competing surfaces.
+//
+// `/journal` still exists as a route (and the Footer keeps a link
+// there for now) — the operator chose to push pastries above Journal
+// in the primary nav because one-off purchases are a higher-intent
+// destination than blog content.
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Catering", href: "/catering" },
   { label: "Events", href: "/events" },
   { label: "Gifting", href: "/gifting" },
   { label: "Indulgence", href: "/cravings" },
-  { label: "Journal", href: "/journal" },
+  { label: "Pastries", href: "/pastries" },
   { label: "FAQ", href: "/faq" },
 ] as const;
 
