@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { AddToCartButton } from "@/app/(marketing)/cravings/AddToCartButton";
 import { TruncatedDescription } from "@/app/(marketing)/cravings/TruncatedDescription";
 import { heroBackground } from "@/lib/images";
@@ -94,17 +96,39 @@ export function PastryMenuGrid({ items, isAuthed, emptyMessage }: Props) {
               className="group relative overflow-hidden border border-cream-200 bg-cream-50"
             >
               <div className="relative">
-                <div
-                  role="img"
-                  aria-label={item.imageAlt ?? `${item.name} — ${item.description ?? ""}`}
-                  className="aspect-[4/3] w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand sm:aspect-square sm:group-hover:scale-105"
-                  style={
-                    item.imageUrl
-                      ? heroBackground(item.imageUrl)
-                      : { background: "linear-gradient(135deg,#ECA068,#5C1F18)" }
-                  }
-                />
+                {/*
+                  The photo itself navigates to the detail page. We
+                  use a focusable <Link> wrapping the visual `div`
+                  so keyboard users can tab into it the same way
+                  they can tab into the title link below.
+                  `block` makes the link fill the photo area; the
+                  underlying div carries the aspect ratio + image.
+                */}
+                <Link
+                  href={`/pastries/${item.slug}`}
+                  aria-label={`View ${item.name} details`}
+                  className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+                >
+                  <div
+                    role="img"
+                    aria-label={item.imageAlt ?? `${item.name} — ${item.description ?? ""}`}
+                    className="aspect-[4/3] w-full bg-gradient-to-br from-orange-200 to-maroon-700 transition-transform duration-base ease-brand sm:aspect-square sm:group-hover:scale-105"
+                    style={
+                      item.imageUrl
+                        ? heroBackground(item.imageUrl)
+                        : { background: "linear-gradient(135deg,#ECA068,#5C1F18)" }
+                    }
+                  />
+                </Link>
 
+                {/*
+                  AddToCartButton sits OUTSIDE the photo-link above,
+                  not nested inside it. HTML doesn't allow nested
+                  interactive elements (`<a>` inside `<a>`), and
+                  nesting would also make the button's click bubble
+                  up to navigate to the detail page instead of
+                  adding to cart.
+                */}
                 <AddToCartButton
                   pastryItemId={item.id}
                   itemName={item.name}
@@ -116,12 +140,21 @@ export function PastryMenuGrid({ items, isAuthed, emptyMessage }: Props) {
                   currency={item.currency}
                 />
 
-                {/* Desktop editorial overlay (sm+). */}
+                {/*
+                  Desktop editorial overlay (sm+). The title here
+                  also links to the detail page so the customer can
+                  reach it whether they tap the photo OR the title.
+                  Pointer-events on the gradient stay enabled so the
+                  link inside is clickable.
+                */}
                 <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-maroon-700/95 via-maroon-700/60 to-transparent p-4 pt-10 sm:block">
                   <div className="flex items-baseline justify-between gap-2">
-                    <h3 className="m-0 font-display text-lg font-medium text-cream-50">
+                    <Link
+                      href={`/pastries/${item.slug}`}
+                      className="m-0 font-display text-lg font-medium text-cream-50 no-underline hover:underline"
+                    >
                       {item.name}
-                    </h3>
+                    </Link>
                     <span className="font-display text-sm font-medium text-cream-50/90">
                       {fmtGBP(item.priceMinor, item.currency)}
                     </span>
@@ -148,9 +181,17 @@ export function PastryMenuGrid({ items, isAuthed, emptyMessage }: Props) {
               {/* Mobile-only text block (below `sm`). */}
               <div className="block px-4 py-4 sm:hidden">
                 <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="m-0 font-display text-2xl font-semibold text-maroon-700">
+                  {/*
+                    Title also links on mobile — gives the customer
+                    a clear "tap here to read more" affordance
+                    distinct from the "Add to cart" pill above.
+                  */}
+                  <Link
+                    href={`/pastries/${item.slug}`}
+                    className="m-0 font-display text-2xl font-semibold text-maroon-700 no-underline"
+                  >
                     {item.name}
-                  </h3>
+                  </Link>
                   <span className="font-display text-lg font-medium text-orange-700">
                     {fmtGBP(item.priceMinor, item.currency)}
                   </span>
@@ -163,6 +204,22 @@ export function PastryMenuGrid({ items, isAuthed, emptyMessage }: Props) {
                 {item.description ? (
                   <TruncatedDescription text={item.description} />
                 ) : null}
+                {/*
+                  Explicit "View details" affordance below the
+                  truncated description. The `TruncatedDescription`
+                  component has its own ellipsis-tap UI to reveal
+                  the full text in place, so this link is for
+                  customers who'd rather open the full detail page
+                  (image, structured rules, related items in
+                  future). Two paths, one for in-place expansion,
+                  one for navigation.
+                */}
+                <Link
+                  href={`/pastries/${item.slug}`}
+                  className="mt-2 inline-block font-sans text-xs italic text-orange-700 hover:text-orange-800"
+                >
+                  View details →
+                </Link>
               </div>
             </article>
           );
