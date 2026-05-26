@@ -1,8 +1,7 @@
 import { type Metadata } from "next";
+import Link from "next/link";
 
-import { AuthShell } from "@/components/auth/AuthShell";
 import { Alert } from "@/components/primitives/Alert";
-import { Button } from "@/components/primitives/Button";
 import { apiFetch } from "@/lib/api";
 
 export const metadata: Metadata = {
@@ -10,6 +9,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * Newsletter unsubscribe landing page.
+ *
+ * Uses the plain marketing wrapper (gutter + section padding) so the
+ * global `<Header>` from the (marketing) layout sits cleanly above the
+ * content. We do NOT use `<AuthShell>` here — that would render its
+ * own brand chrome on top of the marketing header (the double-header
+ * bug we hit on the gifting checkout success page).
+ */
 export default async function UnsubscribeNewsletterPage({
   searchParams,
 }: {
@@ -19,9 +27,13 @@ export default async function UnsubscribeNewsletterPage({
 
   if (!token) {
     return (
-      <AuthShell title="Missing unsubscribe link" eyebrow="Newsletter">
+      <div className="mx-auto max-w-xl px-page-gutter py-section-y">
+        <p className="eyebrow mb-3">Newsletter</p>
+        <h1 className="m-0 mb-4 font-display text-5xl font-medium text-maroon-600">
+          Missing unsubscribe link
+        </h1>
         <Alert variant="danger">No unsubscribe token was provided.</Alert>
-      </AuthShell>
+      </div>
     );
   }
 
@@ -33,24 +45,35 @@ export default async function UnsubscribeNewsletterPage({
     });
   } catch {
     return (
-      <AuthShell title="That link didn't work" eyebrow="Newsletter">
+      <div className="mx-auto max-w-xl px-page-gutter py-section-y">
+        <p className="eyebrow mb-3">Newsletter</p>
+        <h1 className="m-0 mb-4 font-display text-5xl font-medium text-maroon-600">
+          That link didn&rsquo;t work
+        </h1>
         <Alert variant="danger">
           The unsubscribe link is invalid. If you keep receiving newsletters in error, write to us
-          at hello@nimievents.co.uk and we&rsquo;ll remove you manually.
+          at hello@nimievents.com and we&rsquo;ll remove you manually.
         </Alert>
-      </AuthShell>
+      </div>
     );
   }
 
   return (
-    <AuthShell
-      eyebrow="Newsletter"
-      title="You're unsubscribed."
-      lede="You won't receive any more newsletters from us. The door's always open if you change your mind."
-    >
-      <a href="/">
-        <Button>Back to home</Button>
-      </a>
-    </AuthShell>
+    <div className="mx-auto max-w-xl px-page-gutter py-section-y">
+      <p className="eyebrow mb-3">Newsletter</p>
+      <h1 className="m-0 mb-3 font-display text-5xl font-medium text-maroon-600">
+        You&rsquo;re unsubscribed.
+      </h1>
+      <p className="mb-6 max-w-prose font-sans text-lg text-neutral-700">
+        You won&rsquo;t receive any more newsletters from us. The door&rsquo;s always open if you
+        change your mind.
+      </p>
+      <Link
+        href="/"
+        className="inline-flex items-center justify-center bg-maroon-600 px-6 py-3 font-display text-lg italic text-cream-50 hover:bg-maroon-700"
+      >
+        Back to home
+      </Link>
+    </div>
   );
 }

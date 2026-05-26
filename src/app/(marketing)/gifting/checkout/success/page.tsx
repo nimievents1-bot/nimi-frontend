@@ -1,9 +1,7 @@
 import { type Metadata } from "next";
 import Link from "next/link";
 
-import { AuthShell } from "@/components/auth/AuthShell";
 import { Alert } from "@/components/primitives/Alert";
-import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 
@@ -67,9 +65,17 @@ export default async function CheckoutSuccessPage({
   const { ref, session_id: sessionId } = await searchParams;
   if (!ref) {
     return (
-      <AuthShell title="Missing order reference" eyebrow="Order">
+      // Plain marketing wrapper — the global `<Header>` from the
+      // (marketing) layout is already rendered above us, so we MUST
+      // NOT wrap content in `<AuthShell>` (which paints its own
+      // brand chrome and would double up the masthead).
+      <div className="mx-auto max-w-xl px-page-gutter py-section-y">
+        <p className="eyebrow mb-3">Order</p>
+        <h1 className="m-0 mb-4 font-display text-5xl font-medium text-maroon-600">
+          Missing order reference
+        </h1>
         <Alert variant="danger">No order reference was provided in the link.</Alert>
-      </AuthShell>
+      </div>
     );
   }
 
@@ -105,12 +111,16 @@ export default async function CheckoutSuccessPage({
 
   if (!order) {
     return (
-      <AuthShell eyebrow="Order" title="We couldn't find that order">
+      <div className="mx-auto max-w-xl px-page-gutter py-section-y">
+        <p className="eyebrow mb-3">Order</p>
+        <h1 className="m-0 mb-4 font-display text-5xl font-medium text-maroon-600">
+          We couldn&rsquo;t find that order
+        </h1>
         <Alert variant="danger">
           The order reference is invalid. If you completed payment, check your email — you should
           have a receipt from Stripe.
         </Alert>
-      </AuthShell>
+      </div>
     );
   }
 
@@ -120,11 +130,21 @@ export default async function CheckoutSuccessPage({
   });
 
   return (
-    <AuthShell
-      eyebrow="Order received"
-      title="Thank you."
-      lede={`Reference ${order.reference}. We'll be in touch within one working day.`}
-    >
+    // Plain marketing wrapper. The (marketing) layout already renders
+    // the site `<Header>` above this content; using `<AuthShell>` here
+    // would paint a second brand chrome on top and create the
+    // double-header bug (visible regression around early-access
+    // launch). The pastry cart success page uses the same wrapper
+    // shape so the two checkout-confirmation flows feel consistent.
+    <div className="mx-auto max-w-xl px-page-gutter py-section-y">
+      <p className="eyebrow mb-3">Order received</p>
+      <h1 className="m-0 mb-3 font-display text-5xl font-medium text-maroon-600">
+        Thank you.
+      </h1>
+      <p className="mb-6 max-w-prose font-sans text-lg text-neutral-700">
+        Reference {order.reference}. We&rsquo;ll be in touch within one working day.
+      </p>
+
       <Alert variant="success" className="mb-6">
         We&rsquo;ve sent a receipt to <strong>{order.email}</strong>. The next step is the design
         mock-up — we&rsquo;ll email it to you for approval before production begins.
@@ -163,13 +183,19 @@ export default async function CheckoutSuccessPage({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Link href={`/account/orders/gift/${encodeURIComponent(order.reference)}`}>
-          <Button>View this order</Button>
+        <Link
+          href={`/account/orders/gift/${encodeURIComponent(order.reference)}`}
+          className="inline-flex items-center justify-center bg-maroon-600 px-6 py-3 font-display text-lg italic text-cream-50 hover:bg-maroon-700"
+        >
+          View this order
         </Link>
-        <Link href="/account/orders">
-          <Button variant="secondary">All your orders</Button>
+        <Link
+          href="/account/orders"
+          className="inline-flex items-center justify-center border border-cream-200 bg-cream-100 px-6 py-3 font-display text-lg italic text-maroon-700 hover:border-orange-200 hover:bg-orange-100"
+        >
+          All your orders
         </Link>
       </div>
-    </AuthShell>
+    </div>
   );
 }
