@@ -35,7 +35,7 @@ export function Footer() {
             Authentically African flavours, considered planning, and gifts that arrive on time.
             A family kitchen, scaled with care.
           </p>
-          <p className="mb-1 font-sans text-base text-neutral-700">020 0000 0000</p>
+          <p className="mb-1 font-sans text-base text-neutral-700">075 8676 4246</p>
           <Link
             href="mailto:nimi.events1@gmail.com"
             className="font-sans text-base text-orange-600 underline underline-offset-4 hover:text-orange-700"

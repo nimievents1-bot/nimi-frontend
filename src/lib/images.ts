@@ -50,11 +50,24 @@ export const images = {
     cookies: unsplash("1556910103-1c02745aae4d", { w: 1800, q: 80 }),
   },
 
-  /** Service cards on the homepage. 4:3 aspect ratio. */
+  /**
+   * Service cards on the homepage. 4:3 aspect ratio at render time.
+   *
+   * Catering, Events and Gifting now point at real Nimi photography
+   * committed to `/public/<name>.jpg`. The remaining `content` slot
+   * still uses an Unsplash placeholder until we have a brand-shot
+   * replacement — swap in `/content.jpg` the same way when the
+   * photograph lands.
+   *
+   * Source images are stored at 1080×1920 (portrait), strip-cleaned
+   * of EXIF, JPEG q=85. The 4:3 cards render with `object-fit:
+   * cover` (via `heroBackground` on the card's mediaStyle), so the
+   * portrait aspect gets center-cropped to fill the landscape card.
+   */
   services: {
-    catering: unsplash("1414235077428-338989a2e8c0", { w: 1000, h: 750 }),
-    events: unsplash("1519225421980-715cb0215aed", { w: 1000, h: 750 }),
-    gifting: unsplash("1513885535751-8b9238bd345a", { w: 1000, h: 750 }),
+    catering: "/catering.jpg",
+    events: "/event-planning.jpg",
+    gifting: "/gifting.jpg",
     content: unsplash("1518780664697-55e3ad937233", { w: 1000, h: 750 }),
   },
 
