@@ -45,8 +45,8 @@ export default function PrivacyPage() {
           <p>
             Under UK GDPR you have rights of access, rectification, erasure, restriction,
             portability and objection. Email us at{" "}
-            <a className="text-orange-600 underline underline-offset-4" href="mailto:hello@nimievents.co.uk">
-              hello@nimievents.co.uk
+            <a className="text-orange-600 underline underline-offset-4" href="mailto:nimi.events1@gmail.com">
+              nimi.events1@gmail.com
             </a>{" "}
             and we&rsquo;ll respond within one calendar month.
           </p>

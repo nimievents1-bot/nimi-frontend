@@ -195,7 +195,17 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
       imageUrl: imageUrl.trim() || undefined,
       imageAlt: imageAlt.trim() || undefined,
       tags,
-      batchLimit: batchLimit ? Number(batchLimit) : undefined,
+      // Tri-state submission for batch limit:
+      //   - blank input → `null` (operator cleared the cap)
+      //   - "0" or any falsy non-empty → still treat as "null" because
+      //     the DTO floor is 1 and 0 would 400 the save
+      //   - valid integer → number
+      // Sending `null` (not `undefined`) is essential — `undefined`
+      // gets stripped by `JSON.stringify` and the API would read the
+      // submission as "don't change", leaving the previous cap in
+      // place. That was the bug the operator hit when trying to clear
+      // a previously-set limit by blanking the field.
+      batchLimit: batchLimit && Number(batchLimit) > 0 ? Number(batchLimit) : null,
       // Send `1` explicitly when the field is empty so the API can
       // distinguish "operator wants no minimum" from "operator didn't
       // touch this field". The DTO accepts 1 as "no minimum" because

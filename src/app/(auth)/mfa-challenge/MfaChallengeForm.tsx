@@ -92,8 +92,8 @@ export function MfaChallengeForm({ next }: Props) {
 
       <p className="mt-4 font-sans text-xs text-neutral-500">
         Lost access to your authenticator? Email{" "}
-        <a className="text-orange-600 underline underline-offset-4" href="mailto:hello@nimievents.co.uk">
-          hello@nimievents.co.uk
+        <a className="text-orange-600 underline underline-offset-4" href="mailto:nimi.events1@gmail.com">
+          nimi.events1@gmail.com
         </a>{" "}
         from your account email and we&rsquo;ll help you regain access.
       </p>

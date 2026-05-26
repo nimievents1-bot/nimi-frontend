@@ -75,7 +75,7 @@ const minimalDefaults: Record<string, Record<string, unknown>> = {
   footer: {
     about: "About text goes here.",
     phone: "—",
-    email: "hello@nimievents.co.uk",
+    email: "nimi.events1@gmail.com",
     social: null,
   },
 };

@@ -37,10 +37,10 @@ export function Footer() {
           </p>
           <p className="mb-1 font-sans text-base text-neutral-700">020 0000 0000</p>
           <Link
-            href="mailto:hello@nimievents.co.uk"
+            href="mailto:nimi.events1@gmail.com"
             className="font-sans text-base text-orange-600 underline underline-offset-4 hover:text-orange-700"
           >
-            hello@nimievents.co.uk
+            nimi.events1@gmail.com
           </Link>
 
           <p className="mt-6 mb-1 font-display text-base font-medium text-maroon-700">

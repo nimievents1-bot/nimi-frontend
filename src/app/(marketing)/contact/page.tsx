@@ -31,9 +31,9 @@ export default function ContactPage() {
             You can also write directly to{" "}
             <a
               className="text-orange-600 underline underline-offset-4"
-              href="mailto:hello@nimievents.co.uk"
+              href="mailto:nimi.events1@gmail.com"
             >
-              hello@nimievents.co.uk
+              nimi.events1@gmail.com
             </a>
             .
           </p>
