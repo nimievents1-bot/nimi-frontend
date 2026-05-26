@@ -22,6 +22,18 @@ interface CheckoutFormProps {
   meetsMinimum: boolean;
   anyUnavailable: boolean;
   /**
+   * Every cart line meets its item's per-item minimum order quantity.
+   * False blocks checkout — the cart page already surfaces a per-line
+   * warning so the customer knows what to fix.
+   */
+  meetsAllItemMinimums: boolean;
+  /**
+   * Every cart line fits inside its item's daily batch cap. False
+   * blocks checkout — the cart page surfaces the offending line with
+   * remediation text ("only X left for today").
+   */
+  withinAllBatchLimits: boolean;
+  /**
    * Initial values pulled from the customer's saved profile so they
    * don't have to retype their delivery address every checkout. They
    * can still edit any field before placing the order — this is just
@@ -36,11 +48,19 @@ interface CheckoutFormProps {
  * redirect is needed (cart payable > 0) or whether to mark the order
  * PAID immediately (credits cover the whole bill).
  *
- * The `meetsMinimum` and `anyUnavailable` flags come from the cart view
- * already computed server-side; we mirror them in the disabled state so
- * the user sees the gate before clicking, not after.
+ * All four gate flags (`meetsMinimum`, `anyUnavailable`,
+ * `meetsAllItemMinimums`, `withinAllBatchLimits`) come from the cart
+ * view already computed server-side. We mirror them in the disabled
+ * state so the user sees the gate before clicking, and the API
+ * re-checks every gate on submit as defence in depth.
  */
-export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: CheckoutFormProps) {
+export function CheckoutForm({
+  meetsMinimum,
+  anyUnavailable,
+  meetsAllItemMinimums,
+  withinAllBatchLimits,
+  defaults,
+}: CheckoutFormProps) {
   const router = useRouter();
 
   // Pre-fill from the customer's saved profile when present, so a
@@ -177,7 +197,12 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: Checkou
     }
   };
 
-  const disabled = pending || !meetsMinimum || anyUnavailable;
+  const disabled =
+    pending ||
+    !meetsMinimum ||
+    anyUnavailable ||
+    !meetsAllItemMinimums ||
+    !withinAllBatchLimits;
 
   return (
     <form noValidate onSubmit={onSubmit} className="space-y-1">
@@ -345,6 +370,13 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: Checkou
         <Button type="submit" variant="primary" block disabled={disabled}>
           {pending ? "Redirecting…" : "Place order"}
         </Button>
+        {/*
+          Below-button helper. Priority is "fix the loudest broken
+          rule first" so the customer isn't told to add more items
+          when their actual blocker is a below-minimum line or a
+          full batch. Order of checks matches the priority order the
+          API uses when computing rejections.
+        */}
         {!meetsMinimum ? (
           <p className="mt-3 text-center font-sans text-xs text-neutral-500">
             Add a few more items to reach the £25 minimum before checkout.
@@ -352,6 +384,14 @@ export function CheckoutForm({ meetsMinimum, anyUnavailable, defaults }: Checkou
         ) : anyUnavailable ? (
           <p className="mt-3 text-center font-sans text-xs text-semantic-danger">
             Remove unavailable items before checking out.
+          </p>
+        ) : !meetsAllItemMinimums ? (
+          <p className="mt-3 text-center font-sans text-xs text-semantic-danger">
+            One or more items are below their minimum order quantity — see the warnings above the cart actions.
+          </p>
+        ) : !withinAllBatchLimits ? (
+          <p className="mt-3 text-center font-sans text-xs text-semantic-danger">
+            One or more items have exceeded today&rsquo;s kitchen capacity — adjust the quantities above and try again.
           </p>
         ) : (
           <p className="mt-3 text-center font-sans text-xs text-neutral-500">

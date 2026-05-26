@@ -26,6 +26,20 @@ interface PublicPastry {
   imageAlt: string | null;
   tags: string[];
   leadTimeDays: number;
+  /**
+   * Minimum order quantity (1 = no minimum). Surfaced as a small
+   * "Minimum N per order" hint near the price so customers know the
+   * rule before tapping "Add to cart" rather than discovering it on
+   * the cart page.
+   */
+  minQuantity: number;
+  /**
+   * Daily kitchen cap (null = no cap). When non-null, the menu card
+   * could render a "few left for today" hint — currently we just
+   * keep the field available; the cart page handles the hard
+   * enforcement.
+   */
+  batchLimit: number | null;
 }
 
 const fmtGBP = (minor: number, currency = "gbp") =>
@@ -305,6 +319,17 @@ export default async function IndulgenceClubPage() {
                               {item.description}
                             </p>
                           ) : null}
+                          {/*
+                            Per-item rule hint, desktop overlay variant.
+                            Render in cream-tinted text on the dark
+                            gradient so it stays legible against the
+                            photo. Hidden when there's no minimum.
+                          */}
+                          {item.minQuantity > 1 ? (
+                            <p className="m-0 mt-1 font-sans text-2xs uppercase tracking-[0.18em] text-orange-300">
+                              Min {item.minQuantity} per order
+                            </p>
+                          ) : null}
                         </div>
 
                         {isLimited ? (
@@ -335,6 +360,18 @@ export default async function IndulgenceClubPage() {
                             {fmtGBP(item.priceMinor, item.currency)}
                           </span>
                         </div>
+                        {/*
+                          Per-item rule hint, mobile card. Shows the
+                          minimum order quantity (and optionally the
+                          batch cap) below the price so the customer
+                          knows the rule before tapping Add — rather
+                          than learning it on the cart page.
+                        */}
+                        {item.minQuantity > 1 ? (
+                          <p className="m-0 mt-1 font-sans text-xs uppercase tracking-[0.16em] text-orange-700">
+                            Minimum {item.minQuantity} per order
+                          </p>
+                        ) : null}
                         {item.description ? (
                           <TruncatedDescription text={item.description} />
                         ) : null}

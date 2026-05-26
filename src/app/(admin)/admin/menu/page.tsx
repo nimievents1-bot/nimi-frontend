@@ -22,6 +22,10 @@ interface PastryRow {
   imageAlt: string | null;
   tags: string[] | unknown;
   batchLimit: number | null;
+  // Minimum order quantity for this item (`1` = no minimum). Carried
+  // through from the API so the admin editor can populate its input
+  // when navigated to from the list.
+  minQuantity: number;
   leadTimeDays: number;
   displayOrder: number;
   available: boolean;

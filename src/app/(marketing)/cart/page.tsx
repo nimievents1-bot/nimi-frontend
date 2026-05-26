@@ -29,6 +29,17 @@ interface CartLine {
   quantity: number;
   lineTotalMinor: number;
   available: boolean;
+  // ---- Per-item rule fields surfaced by the cart API ----
+  /** Minimum order quantity for this item (1 = no minimum). */
+  minQuantity: number;
+  /** Kitchen daily cap (null = no cap). */
+  batchLimit: number | null;
+  /** Units already committed for today (other customers' open orders). */
+  bookedToday: number;
+  /** `quantity >= minQuantity` — checkout is blocked when any line is false. */
+  meetsMinimum: boolean;
+  /** `bookedToday + quantity <= batchLimit` (true if no cap). */
+  withinBatch: boolean;
 }
 
 interface CartView {
@@ -39,6 +50,10 @@ interface CartView {
   applicableCreditMinor: number;
   payableMinor: number;
   meetsMinimum: boolean;
+  /** Every cart line clears its per-item minimum order quantity. */
+  meetsAllItemMinimums: boolean;
+  /** Every cart line fits inside its item's daily batch cap. */
+  withinAllBatchLimits: boolean;
 }
 
 const fmt = (minor: number, currency = "gbp") =>
@@ -220,6 +235,40 @@ export default async function CartPage({
                         No longer available — please remove this item.
                       </p>
                     ) : null}
+                    {/*
+                      Per-line rule warnings. We render BOTH when a line
+                      violates BOTH (rare) so the customer sees the full
+                      picture without having to bump the quantity twice.
+                      `meetsMinimum` blocks checkout outright; the
+                      `withinBatch` line also blocks but surfaces a
+                      remediation hint ("you can keep X for today").
+                    */}
+                    {!line.meetsMinimum ? (
+                      <p className="mt-2 font-sans text-xs text-semantic-danger">
+                        Minimum order is {line.minQuantity} — please increase the quantity to continue.
+                      </p>
+                    ) : null}
+                    {!line.withinBatch && line.batchLimit !== null ? (
+                      <p className="mt-2 font-sans text-xs text-semantic-danger">
+                        {(() => {
+                          const left = Math.max(0, line.batchLimit - line.bookedToday);
+                          return left === 0
+                            ? "Fully booked for today. Try again tomorrow or remove this line."
+                            : `Only ${left} left for today — please drop to ${left} or fewer.`;
+                        })()}
+                      </p>
+                    ) : line.minQuantity > 1 || line.batchLimit !== null ? (
+                      // When the line is healthy, show a quiet hint so the
+                      // customer can see the rules without being told they
+                      // broke one.
+                      <p className="mt-2 font-sans text-xs italic text-neutral-500">
+                        {line.minQuantity > 1 ? `Minimum ${line.minQuantity} per order` : null}
+                        {line.minQuantity > 1 && line.batchLimit !== null ? " · " : null}
+                        {line.batchLimit !== null
+                          ? `${Math.max(0, line.batchLimit - line.bookedToday)} left for today`
+                          : null}
+                      </p>
+                    ) : null}
                     <div className="mt-3">
                       <CartActions
                         cartItemId={line.cartItemId}
@@ -267,6 +316,19 @@ export default async function CartPage({
                     ? "Meets £25 minimum"
                     : `£${((2500 - view.subtotalMinor) / 100).toFixed(2)} below minimum`}
                 </Tag>
+                {/*
+                  Per-item-minimum and batch-limit gates surface here
+                  too so the summary card paints a complete picture of
+                  what's blocking checkout. Both render in orange to
+                  match the £25 below-minimum tag's tone — the cart
+                  is "not ready" rather than "broken".
+                */}
+                {!view.meetsAllItemMinimums ? (
+                  <Tag variant="orange">Item below minimum quantity</Tag>
+                ) : null}
+                {!view.withinAllBatchLimits ? (
+                  <Tag variant="orange">Over today&rsquo;s capacity</Tag>
+                ) : null}
                 {view.creditBalanceMinor > 0 ? (
                   <Tag>
                     Credit balance {fmt(view.creditBalanceMinor, view.currency)}
@@ -282,6 +344,8 @@ export default async function CartPage({
               <CheckoutForm
                 meetsMinimum={view.meetsMinimum}
                 anyUnavailable={view.lines.some((l) => !l.available)}
+                meetsAllItemMinimums={view.meetsAllItemMinimums}
+                withinAllBatchLimits={view.withinAllBatchLimits}
                 defaults={
                   profile
                     ? {

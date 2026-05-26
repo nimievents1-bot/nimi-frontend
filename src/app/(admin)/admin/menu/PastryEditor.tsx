@@ -19,6 +19,11 @@ export interface PastryRow {
   imageAlt: string | null;
   tags: string[] | unknown;
   batchLimit: number | null;
+  /**
+   * Minimum order quantity. Defaults to 1 on the API (= no minimum)
+   * so historical rows naturally get the unrestricted behaviour.
+   */
+  minQuantity: number;
   leadTimeDays: number;
   displayOrder: number;
   available: boolean;
@@ -65,6 +70,13 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
   );
   const [batchLimit, setBatchLimit] = useState<string>(
     row?.batchLimit !== null && row?.batchLimit !== undefined ? String(row.batchLimit) : "",
+  );
+  // Minimum order quantity. Show empty string when the value is 1
+  // (the API default = "no minimum") so the field reads as "no
+  // constraint" rather than displaying a misleading "1" that looks
+  // like an explicit setting.
+  const [minQuantity, setMinQuantity] = useState<string>(
+    row?.minQuantity && row.minQuantity > 1 ? String(row.minQuantity) : "",
   );
   const [leadTimeDays, setLeadTimeDays] = useState<string>(
     row ? String(row.leadTimeDays) : "0",
@@ -184,6 +196,11 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
       imageAlt: imageAlt.trim() || undefined,
       tags,
       batchLimit: batchLimit ? Number(batchLimit) : undefined,
+      // Send `1` explicitly when the field is empty so the API can
+      // distinguish "operator wants no minimum" from "operator didn't
+      // touch this field". The DTO accepts 1 as "no minimum" because
+      // it's the schema default.
+      minQuantity: minQuantity ? Number(minQuantity) : 1,
       leadTimeDays: Number(leadTimeDays) || 0,
       displayOrder: Number(displayOrder) || 0,
       available,
@@ -443,6 +460,31 @@ export function PastryEditor({ mode, row }: PastryEditorProps) {
             onChange={(e) => setBatchLimit(e.target.value)}
             className={fieldClass}
           />
+        </label>
+        {/*
+          Per-item minimum order quantity. Customers can't proceed to
+          checkout if any cart line falls below the value set here.
+          Blank or 1 means "no minimum" — the API normalises both to
+          the schema default. Surface this next to the batch limit so
+          both kitchen-side constraints sit together.
+        */}
+        <label className="flex flex-col gap-1">
+          <span className="font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
+            Minimum order quantity (blank or 1 = no minimum)
+          </span>
+          <input
+            type="number"
+            min={1}
+            max={999}
+            value={minQuantity}
+            onChange={(e) => setMinQuantity(e.target.value)}
+            placeholder="e.g. 6 for fish roe"
+            className={fieldClass}
+          />
+          <span className="font-sans text-xs italic text-neutral-500">
+            Customers can&rsquo;t check out with a smaller quantity of this item.
+            Lines below the minimum show a warning in the cart.
+          </span>
         </label>
       </div>
 
