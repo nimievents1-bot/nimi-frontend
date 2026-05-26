@@ -26,3 +26,19 @@ Thumbs.db
 playwright-report/
 test-results/
 .nyc_output/
+
+# Raw video sources never get committed — only the optimised
+# transcodes under `public/hero/` ship to Vercel. If you've dropped a
+# 31 MB phone-shot `.mov` straight into `public/`, this rule keeps it
+# out of the deploy artifact while the file still sits on your disk.
+public/*.mov
+public/*.MOV
+public/*.avi
+public/*.mkv
+public/*-source.*
+# Belt-and-braces: any single video file > a few MB anywhere in
+# `public/` is almost certainly an un-optimised source we don't want
+# to ship. Keep this loose to the file pattern; we DO want
+# `public/hero/home.mp4` (the optimised output) to be committed.
+public/source-*
+

@@ -6,6 +6,7 @@ import { Faq } from "@/components/patterns/Faq";
 import { Footer } from "@/components/patterns/Footer";
 import { Header } from "@/components/patterns/Header";
 import { Hero } from "@/components/patterns/Hero";
+import { VideoHero } from "@/components/patterns/VideoHero";
 import { NewsletterForm } from "@/components/patterns/NewsletterForm";
 import { Testimonials } from "@/components/patterns/Testimonials";
 import { Button } from "@/components/primitives/Button";
@@ -105,15 +106,45 @@ export default async function HomePage() {
        * the hero photograph or has scrolled into the cream content.
        */}
       <Header current="/" onDark />
-      <Hero
-        eyebrow={hero?.eyebrow ?? "Catering · Events · Gifting · Content"}
-        title={hero?.headline ?? "Where good food gathers."}
-        lede={
-          hero?.subheadline ??
-          "Authentically African flavours, considered planning, and gifts that arrive on time."
-        }
-        imageUrl={hero?.imageUrl ?? images.hero.home}
-      />
+      {/*
+        Home page uses the looping-video variant of the hero. Poster
+        image renders instantly (the JPG ships with the rest of the
+        static assets and is tiny), so the first paint of the page
+        looks identical to the previous static-image hero. The video
+        only loads after IntersectionObserver fires and the visitor
+        environment OK's playback — visitors with reduced-motion
+        preference, Save-Data on, or older browsers see the poster
+        only.
+
+        We deliberately fall through to the static `<Hero>` (kept
+        imported above) ONLY when the CMS-published hero block has a
+        non-default imageUrl — i.e. the operator has uploaded a
+        custom hero image and explicitly wants that instead of the
+        looping video. For the default branding state, the video
+        wins.
+      */}
+      {hero?.imageUrl ? (
+        <Hero
+          eyebrow={hero.eyebrow ?? "Catering · Events · Gifting · Content"}
+          title={hero.headline ?? "Where good food gathers."}
+          lede={
+            hero.subheadline ??
+            "Authentically African flavours, considered planning, and gifts that arrive on time."
+          }
+          imageUrl={hero.imageUrl}
+        />
+      ) : (
+        <VideoHero
+          eyebrow={hero?.eyebrow ?? "Catering · Events · Gifting · Content"}
+          title={hero?.headline ?? "Where good food gathers."}
+          lede={
+            hero?.subheadline ??
+            "Authentically African flavours, considered planning, and gifts that arrive on time."
+          }
+          posterSrc="/hero/home-poster.jpg"
+          videoSrc="/hero/home.mp4"
+        />
+      )}
 
       <main>
         <section className="bg-cream-50 px-page-gutter py-section-y">
