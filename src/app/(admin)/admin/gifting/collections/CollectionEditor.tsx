@@ -263,7 +263,16 @@ export function CollectionEditor({ mode, row }: Props) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    // React `onSubmit` is typed `(e) => void`, but our handler is
+    // async. The wrappers below adapt async handlers to void
+    // returns so the lint stays clean — same pattern as the
+    // pastry editor.
+    <form
+      onSubmit={(e) => {
+        void onSubmit(e);
+      }}
+      className="space-y-4"
+    >
       {error ? <Alert variant="danger">{error}</Alert> : null}
       {success ? <Alert variant="success">{success}</Alert> : null}
 
@@ -448,7 +457,9 @@ export function CollectionEditor({ mode, row }: Props) {
             <input
               type="file"
               accept="image/*"
-              onChange={onFileSelected}
+              onChange={(e) => {
+                void onFileSelected(e);
+              }}
               disabled={uploading}
               className="sr-only"
             />
@@ -476,7 +487,9 @@ export function CollectionEditor({ mode, row }: Props) {
             type="button"
             variant="secondary"
             size="sm"
-            onClick={onDelete}
+            onClick={() => {
+              void onDelete();
+            }}
             disabled={pending}
             className="!text-semantic-danger"
           >

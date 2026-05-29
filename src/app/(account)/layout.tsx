@@ -58,7 +58,7 @@ interface NavItem {
  * last, and put the most-used items inside "My activity" in the
  * order customers reach for them.
  */
-const ACCOUNT_NAV: ReadonlyArray<NavItem> = [
+const ACCOUNT_NAV: readonly NavItem[] = [
   { label: "Dashboard", href: "/account", section: "Overview" },
 
   { label: "Bookings", href: "/account/bookings", section: "My activity" },

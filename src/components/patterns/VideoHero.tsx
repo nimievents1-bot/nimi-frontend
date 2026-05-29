@@ -177,8 +177,13 @@ export function VideoHero({
     // Some browsers ignore the `autoplay` attribute and require an
     // explicit `play()` after the video is mounted; calling here
     // covers both code paths.
+    // Spec-wise, HTMLMediaElement.play() returns a Promise in every
+    // evergreen browser. We still narrow to `instanceof Promise` so
+    // ESLint's `no-misused-promises` rule stays happy AND so the
+    // ancient-IE non-promise return path is handled cleanly without
+    // throwing on `.catch`.
     const result = v.play();
-    if (result && typeof result.then === "function") {
+    if (result instanceof Promise) {
       result.catch(() => {
         // Autoplay refused. Poster stays visible — nothing else to
         // do. We could surface a tap-to-play affordance here, but
