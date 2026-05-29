@@ -16,6 +16,14 @@ const ADMIN_NAV = [
   { label: "Journal", href: "/admin/blog", section: "Content" as const },
   { label: "Testimonials", href: "/admin/testimonials", section: "Content" as const },
   { label: "Menu", href: "/admin/menu", section: "Catalog" as const },
+  // Gift collections are admin-editable from this surface — add, edit
+  // and delete the boxes shown on `/gifting`. Sits under Catalog so
+  // it reads next to the pastry menu (the two product catalogues).
+  {
+    label: "Gift collections",
+    href: "/admin/gifting/collections",
+    section: "Catalog" as const,
+  },
   { label: "Enquiries", href: "/admin/enquiries", section: "Operations" as const },
   { label: "Gift orders", href: "/admin/orders", section: "Operations" as const },
   { label: "Pastry orders", href: "/admin/pastry-orders", section: "Operations" as const },
