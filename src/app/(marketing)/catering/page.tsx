@@ -22,7 +22,7 @@ interface CateringTier {
   eyebrow: string;
   title: string;
   description: string;
-  bullets: ReadonlyArray<string>;
+  bullets: readonly string[];
   flagship?: boolean;
   mediaStyle: ReturnType<typeof heroBackground>;
 }
@@ -53,7 +53,7 @@ interface ServiceTierRow {
  * the public page never renders blank on a fresh install or a
  * transient API failure.
  */
-const FALLBACK_TIERS: ReadonlyArray<CateringTier> = [
+const FALLBACK_TIERS: readonly CateringTier[] = [
   {
     slug: "buffet",
     eyebrow: "Tier 1",
@@ -124,7 +124,7 @@ export default async function CateringPage() {
     plated: images.catering.plated,
   };
 
-  const tiers: ReadonlyArray<CateringTier> =
+  const tiers: readonly CateringTier[] =
     apiTiers.length > 0
       ? apiTiers.map((row) => ({
           slug: row.slug as CateringTierSlug,
