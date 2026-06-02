@@ -13,6 +13,7 @@ import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
 import { getBlock } from "@/lib/content";
 import { heroBackground, images } from "@/lib/images";
+import { siteImages } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Nimi Events — Authentically African catering, planning & gifting",
@@ -20,14 +21,22 @@ export const metadata: Metadata = {
     "Authentically African flavours, considered planning, and gifts that arrive on time. Catering, event planning, gifting, content creation, and The Nimi Indulgence Club.",
 };
 
-const services = [
+/**
+ * Service card copy. Image URLs are resolved INSIDE the component
+ * because they depend on the per-request admin overrides loaded via
+ * `siteImages()`. Keeping the copy here (module-level constant) and
+ * the image lookups in the async component body is the smallest
+ * possible split — no behaviour change for the operator, just the
+ * URL source is now dynamic.
+ */
+const servicesContent = [
   {
     eyebrow: "Catering",
     title: "Authentically African flavours.",
     description:
       "Seasonal menus, set-up, service and styling — for weddings, corporate events, and intimate gatherings across the UK.",
     href: "/catering",
-    mediaStyle: heroBackground(images.services.catering),
+    imageKey: "services.catering",
   },
   {
     eyebrow: "Event planning",
@@ -35,7 +44,7 @@ const services = [
     description:
       "Three tiers of planning — coordination, design, and full production. We quietly run the day so you don't have to.",
     href: "/events",
-    mediaStyle: heroBackground(images.services.events),
+    imageKey: "services.events",
   },
   {
     eyebrow: "Gifting",
@@ -43,7 +52,7 @@ const services = [
     description:
       "Curated collections for corporate, weddings and private events — fully personalised, brand-led, and crafted with intent.",
     href: "/gifting",
-    mediaStyle: heroBackground(images.services.gifting),
+    imageKey: "services.gifting",
   },
   {
     eyebrow: "Content creation",
@@ -51,9 +60,9 @@ const services = [
     description:
       "Mobile videography and photography for weddings, brand activations and milestone moments — same crew, same standard, same care.",
     href: "/content-creation",
-    mediaStyle: heroBackground(images.services.content),
+    imageKey: "services.content",
   },
-];
+] as const;
 
 const homeFaq = [
   {
@@ -90,6 +99,24 @@ export default async function HomePage() {
   // Fetch the hero from the CMS; fall back to brand defaults if no block published yet.
   const heroBlock = await getBlock<HeroPayload>("home", "hero");
   const hero = heroBlock?.payload;
+
+  // Resolve every image slot the home page uses in a single batched
+  // call so admin overrides take effect immediately without a per-
+  // image waterfall. The map falls back to code-level defaults for
+  // any slot the admin hasn't overridden yet, so the public site
+  // continues to render even on first deploy when the DB has zero
+  // override rows.
+  const imageMap = await siteImages(
+    "hero.home",
+    "services.catering",
+    "services.events",
+    "services.gifting",
+    "services.content",
+  );
+  const services = servicesContent.map((s) => ({
+    ...s,
+    mediaStyle: heroBackground(imageMap[s.imageKey] ?? ""),
+  }));
 
   return (
     <>

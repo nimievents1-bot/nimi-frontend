@@ -128,8 +128,7 @@ export default async function GiftCollectionPage({ params }: { params: Promise<{
             </ul>
 
             <p className="mt-8 max-w-prose font-sans text-sm text-neutral-500">
-              All boxes are bespoke and produced after design approval. Lead time is six to ten
-              weeks depending on quantity and customisation. Rush orders are rarely possible.
+            All boxes are bespoke and produced after design approval. Lead time is three to seven weeks depending on quantity and customisation. Rush orders are rarely possible.
             </p>
           </div>
 

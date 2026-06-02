@@ -13,6 +13,12 @@ const ADMIN_ROLES = new Set(["OWNER", "EDITOR", "SUPPORT"]);
 const ADMIN_NAV = [
   { label: "Dashboard", href: "/admin", section: "Overview" as const },
   { label: "Content", href: "/admin/content", section: "Content" as const },
+  // Site-wide image overrides. Sits under "Content" because images
+  // are part of the editorial surface — swapping a hero photograph
+  // is the same kind of operation as changing the copy underneath
+  // it. See `nimi-web/src/lib/siteImages.ts` for the registered
+  // editable slots.
+  { label: "Images", href: "/admin/images", section: "Content" as const },
   { label: "Journal", href: "/admin/blog", section: "Content" as const },
   { label: "Testimonials", href: "/admin/testimonials", section: "Content" as const },
   { label: "Menu", href: "/admin/menu", section: "Catalog" as const },
