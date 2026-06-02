@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card } from "@/components/patterns/Card";
 import { Hero } from "@/components/patterns/Hero";
 import { Button } from "@/components/primitives/Button";
+import { apiFetch } from "@/lib/api";
 import { heroBackground, images } from "@/lib/images";
 import { siteImage } from "@/lib/siteImages";
 
@@ -26,7 +27,33 @@ interface CateringTier {
   mediaStyle: ReturnType<typeof heroBackground>;
 }
 
-const tiers: ReadonlyArray<CateringTier> = [
+/**
+ * API row shape from `/v1/service-tiers?category=CATERING`. Kept
+ * local because the catering page is the only consumer; events
+ * has its own copy with the same shape but different slug type.
+ */
+interface ServiceTierRow {
+  id: string;
+  category: string;
+  slug: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  bullets: unknown;
+  imageUrl: string | null;
+  flagship: boolean;
+  position: number;
+  active: boolean;
+}
+
+/**
+ * Hardcoded fallback set, used until the admin has seeded their own
+ * tiers via `/admin/tiers`. Once the DB has any active CATERING
+ * tier, the API wins and these are unused — but they stay here so
+ * the public page never renders blank on a fresh install or a
+ * transient API failure.
+ */
+const FALLBACK_TIERS: ReadonlyArray<CateringTier> = [
   {
     slug: "buffet",
     eyebrow: "Tier 1",
@@ -73,6 +100,45 @@ export default async function CateringPage() {
   // Resolve admin-editable hero image — falls back to the
   // code-level default when no override exists.
   const heroImageUrl = await siteImage("hero.catering");
+
+  // Fetch tiers from the admin-managed catalogue. Each tier's
+  // optional `imageUrl` wins over the per-slug fallback image; the
+  // overall tiers fallback to `FALLBACK_TIERS` if the API returns
+  // empty or errors. Operator manages everything from /admin/tiers.
+  let apiTiers: ServiceTierRow[] = [];
+  try {
+    apiTiers = await apiFetch<ServiceTierRow[]>(
+      "/service-tiers?category=CATERING",
+      { method: "GET", next: { revalidate: 60, tags: ["service-tiers:catering"] } },
+    );
+  } catch {
+    // Silent fall-through — fallback set renders.
+  }
+
+  // Map per-slug placeholder photography for tiers that don't carry
+  // their own admin-uploaded image. Matches the original mapping
+  // used in `FALLBACK_TIERS`.
+  const FALLBACK_TIER_IMAGE: Record<string, string> = {
+    buffet: images.catering.buffet,
+    "family-style": images.catering.familyStyle,
+    plated: images.catering.plated,
+  };
+
+  const tiers: ReadonlyArray<CateringTier> =
+    apiTiers.length > 0
+      ? apiTiers.map((row) => ({
+          slug: row.slug as CateringTierSlug,
+          eyebrow: row.eyebrow,
+          title: row.title,
+          description: row.description,
+          bullets: Array.isArray(row.bullets) ? (row.bullets as string[]) : [],
+          ...(row.flagship ? { flagship: true } : {}),
+          mediaStyle: heroBackground(
+            row.imageUrl ?? FALLBACK_TIER_IMAGE[row.slug] ?? images.catering.buffet,
+          ),
+        }))
+      : FALLBACK_TIERS;
+
   return (
     <>
       <Hero

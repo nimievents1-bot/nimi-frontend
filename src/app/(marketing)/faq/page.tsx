@@ -9,10 +9,10 @@ export const metadata: Metadata = {
   description: "Answers to the questions we hear most often — booking, gifting, subscriptions, dietary needs.",
 };
 
-const groups: ReadonlyArray<{
+const groups: readonly {
   heading: string;
-  items: ReadonlyArray<{ question: string; answer: string }>;
-}> = [
+  items: readonly { question: string; answer: string }[];
+}[] = [
   {
     heading: "Booking and lead times",
     items: [
@@ -86,7 +86,7 @@ export default async function FaqPage() {
         lede="The questions we hear most often, with the answers we tend to give."
         imageUrl={heroImageUrl}
       />
-      <section className="px-page-gutter section-tight">
+      <section className="section-tight px-page-gutter">
         <div className="mx-auto max-w-prose">
           {groups.map((group) => (
             <div key={group.heading} className="mb-12">

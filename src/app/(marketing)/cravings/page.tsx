@@ -42,7 +42,7 @@ interface PublicPlan {
   stripeReady?: boolean;
 }
 
-const benefits: ReadonlyArray<{ title: string; description: string }> = [
+const benefits: readonly { title: string; description: string }[] = [
   {
     title: "Monthly Indulgence Credits",
     description:
@@ -156,23 +156,23 @@ export default async function IndulgenceClubPage() {
               <p className="eyebrow mb-3">Membership at a glance</p>
               <ul className="m-0 list-none space-y-3 p-0 font-sans text-sm text-neutral-800">
                 <li className="flex items-start gap-3">
-                  <span className="mt-1 inline-block h-2 w-2 rounded-full bg-orange-600" />
+                  <span className="mt-1 inline-block size-2 rounded-full bg-orange-600" />
                   <span><strong>3-month minimum.</strong> The club is designed for ongoing indulgence, not one-off spending.</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="mt-1 inline-block h-2 w-2 rounded-full bg-orange-600" />
+                  <span className="mt-1 inline-block size-2 rounded-full bg-orange-600" />
                   <span><strong>Credits valid 3 months.</strong> Each month's allowance has time to be used — but not forever.</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="mt-1 inline-block h-2 w-2 rounded-full bg-orange-600" />
+                  <span className="mt-1 inline-block size-2 rounded-full bg-orange-600" />
                   <span><strong>Minimum order £25.</strong> Pastry orders start at £25 and use accumulated credits.</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="mt-1 inline-block h-2 w-2 rounded-full bg-orange-600" />
+                  <span className="mt-1 inline-block size-2 rounded-full bg-orange-600" />
                   <span><strong>No refunds.</strong> Credits are prepaid value; cancellation stops future billing only.</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="mt-1 inline-block h-2 w-2 rounded-full bg-orange-600" />
+                  <span className="mt-1 inline-block size-2 rounded-full bg-orange-600" />
                   <span><strong>Cancel anytime after the minimum term.</strong> Future billing stops; existing credits stay valid through their period.</span>
                 </li>
               </ul>

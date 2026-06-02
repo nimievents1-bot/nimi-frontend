@@ -19,12 +19,12 @@ interface ConsultationOption {
   priceLabel: string;
   title: string;
   description: string;
-  bullets: ReadonlyArray<string>;
+  bullets: readonly string[];
   flagship?: boolean;
   envSlug: string;
 }
 
-const options: ReadonlyArray<ConsultationOption> = [
+const options: readonly ConsultationOption[] = [
   {
     durationMinutes: 30,
     priceLabel: "£10",

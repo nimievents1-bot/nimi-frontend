@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card } from "@/components/patterns/Card";
 import { Hero } from "@/components/patterns/Hero";
 import { Button } from "@/components/primitives/Button";
+import { apiFetch } from "@/lib/api";
 import { heroBackground, images } from "@/lib/images";
 import { siteImage } from "@/lib/siteImages";
 
@@ -21,12 +22,31 @@ interface EventsTier {
   eyebrow: string;
   title: string;
   description: string;
-  bullets: ReadonlyArray<string>;
+  bullets: readonly string[];
   flagship?: boolean;
   mediaStyle: ReturnType<typeof heroBackground>;
 }
 
-const tiers: ReadonlyArray<EventsTier> = [
+interface ServiceTierRow {
+  id: string;
+  category: string;
+  slug: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  bullets: unknown;
+  imageUrl: string | null;
+  flagship: boolean;
+  position: number;
+  active: boolean;
+}
+
+/**
+ * Hardcoded fallback set, used until the admin has seeded their own
+ * tiers via `/admin/tiers`. Once the DB has any active EVENTS tier,
+ * the API wins.
+ */
+const FALLBACK_TIERS: readonly EventsTier[] = [
   {
     slug: "coordination",
     eyebrow: "Tier 1",
@@ -76,6 +96,40 @@ const tiers: ReadonlyArray<EventsTier> = [
 
 export default async function EventsPage() {
   const heroImageUrl = await siteImage("hero.events");
+
+  // Fetch admin-managed tiers; fall back to the hardcoded set when
+  // none have been seeded.
+  let apiTiers: ServiceTierRow[] = [];
+  try {
+    apiTiers = await apiFetch<ServiceTierRow[]>(
+      "/service-tiers?category=EVENTS",
+      { method: "GET", next: { revalidate: 60, tags: ["service-tiers:events"] } },
+    );
+  } catch {
+    // Silent fall-through.
+  }
+
+  const FALLBACK_TIER_IMAGE: Record<string, string> = {
+    coordination: images.events.coordination,
+    design: images.events.design,
+    production: images.events.production,
+  };
+
+  const tiers: readonly EventsTier[] =
+    apiTiers.length > 0
+      ? apiTiers.map((row) => ({
+          slug: row.slug as EventsTierSlug,
+          eyebrow: row.eyebrow,
+          title: row.title,
+          description: row.description,
+          bullets: Array.isArray(row.bullets) ? (row.bullets as string[]) : [],
+          ...(row.flagship ? { flagship: true } : {}),
+          mediaStyle: heroBackground(
+            row.imageUrl ?? FALLBACK_TIER_IMAGE[row.slug] ?? images.events.coordination,
+          ),
+        }))
+      : FALLBACK_TIERS;
+
   return (
     <>
       <Hero

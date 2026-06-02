@@ -100,7 +100,7 @@ export default async function GiftCollectionPage({ params }: { params: Promise<{
           c.imageUrl ?? SLUG_FALLBACK_IMAGE[c.slug] ?? CATEGORY_FALLBACK_IMAGE[c.category] ?? giftingHeroFallback
         }
       />
-      <section className="px-page-gutter section-tight">
+      <section className="section-tight px-page-gutter">
         <div className="mx-auto grid max-w-page gap-12 lg:grid-cols-[1.1fr_1fr]">
           <div>
             <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -128,7 +128,7 @@ export default async function GiftCollectionPage({ params }: { params: Promise<{
                   key={it}
                   className="flex gap-3 border-b border-cream-200 py-2 font-sans text-base text-neutral-800"
                 >
-                  <span aria-hidden className="mt-2 inline-block h-1.5 w-1.5 flex-none rounded-full bg-orange-500" />
+                  <span aria-hidden className="mt-2 inline-block size-1.5 flex-none rounded-full bg-orange-500" />
                   {it}
                 </li>
               ))}

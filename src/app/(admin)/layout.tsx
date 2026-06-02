@@ -35,6 +35,9 @@ const ADMIN_NAV = [
     href: "/admin/gifting/collections",
     section: "Catalog" as const,
   },
+  // Service tier cards on /catering and /events. Same catalogue
+  // shape as gift collections — list / add / edit / soft-delete.
+  { label: "Service tiers", href: "/admin/tiers", section: "Catalog" as const },
   { label: "Enquiries", href: "/admin/enquiries", section: "Operations" as const },
   { label: "Gift orders", href: "/admin/orders", section: "Operations" as const },
   { label: "Pastry orders", href: "/admin/pastry-orders", section: "Operations" as const },
