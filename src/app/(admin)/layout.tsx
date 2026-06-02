@@ -19,6 +19,11 @@ const ADMIN_NAV = [
   // it. See `nimi-web/src/lib/siteImages.ts` for the registered
   // editable slots.
   { label: "Images", href: "/admin/images", section: "Content" as const },
+  // Editable text snippets keyed by registry. Production timeline,
+  // any other small site-wide copy strings. See
+  // `nimi-web/src/lib/siteSettings.ts` for the registered editable
+  // strings.
+  { label: "Settings", href: "/admin/settings", section: "Content" as const },
   { label: "Journal", href: "/admin/blog", section: "Content" as const },
   { label: "Testimonials", href: "/admin/testimonials", section: "Content" as const },
   { label: "Menu", href: "/admin/menu", section: "Catalog" as const },
@@ -34,6 +39,10 @@ const ADMIN_NAV = [
   { label: "Gift orders", href: "/admin/orders", section: "Operations" as const },
   { label: "Pastry orders", href: "/admin/pastry-orders", section: "Operations" as const },
   { label: "Indulgence", href: "/admin/cravings", section: "Operations" as const },
+  // Shipping zones — postcode-based delivery fees. Lives under
+  // Operations because it's an ongoing operational lever (tune
+  // rates, run regional promos) rather than catalogue editing.
+  { label: "Shipping", href: "/admin/shipping", section: "Operations" as const },
   { label: "Audit", href: "/admin/audit", section: "System" as const },
 ] as const;
 

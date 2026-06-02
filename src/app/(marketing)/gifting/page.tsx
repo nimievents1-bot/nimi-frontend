@@ -6,6 +6,7 @@ import { Hero } from "@/components/patterns/Hero";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 import { images } from "@/lib/images";
+import { siteSettings } from "@/lib/siteSettings";
 
 export const metadata: Metadata = {
   title: "Gifting",
@@ -123,12 +124,20 @@ export default async function GiftingPage() {
   } catch {
     // API unreachable — fall through to placeholder set below.
   }
-  // Until the founder seeds real collections via admin / Prisma Studio,
-  // an *empty* successful response should also drop into the placeholder
-  // set so the marketing page never renders with a blank grid.
   if (collections.length === 0) {
     collections = FALLBACK;
   }
+
+  // Resolve the admin-editable production timeline strings. Both
+  // settings have code-level fallbacks in the registry, so the
+  // page never renders blank even on first deploy or transient
+  // API errors.
+  const settingsMap = await siteSettings(
+    "gifting.production-timeline.pill",
+    "gifting.production-timeline.lede",
+  );
+  const productionLede = settingsMap["gifting.production-timeline.lede"];
+  const productionPill = settingsMap["gifting.production-timeline.pill"];
 
   return (
     <>
@@ -136,12 +145,12 @@ export default async function GiftingPage() {
         height="short"
         eyebrow="Gifting"
         title="Made-to-order, made for the moment."
-        lede="Curated collections across corporate, weddings and private events. Production time is six to twelve weeks depending on complexity — every item is custom and made to order."
+        lede={`Curated collections across corporate, weddings and private events. ${productionLede}`}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
           <div className="mb-10 flex flex-wrap items-center gap-3">
-            <Tag variant="orange">Production 6–12 wks</Tag>
+            <Tag variant="orange">{productionPill}</Tag>
             <Tag>Custom · made to order</Tag>
             <Tag variant="maroon">Brandable</Tag>
           </div>
