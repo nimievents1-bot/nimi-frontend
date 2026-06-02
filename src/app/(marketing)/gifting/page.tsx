@@ -6,6 +6,7 @@ import { Hero } from "@/components/patterns/Hero";
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 import { images } from "@/lib/images";
+import { siteImageOverride } from "@/lib/siteImages";
 import { siteSettings } from "@/lib/siteSettings";
 
 export const metadata: Metadata = {
@@ -139,6 +140,13 @@ export default async function GiftingPage() {
   const productionLede = settingsMap["gifting.production-timeline.lede"];
   const productionPill = settingsMap["gifting.production-timeline.pill"];
 
+  // Gifting hero defaults to the brand gradient (no photo). When the
+  // admin uploads an override via /admin/images for `hero.gifting`,
+  // we render that instead. Using `siteImageOverride` (not
+  // `siteImage`) preserves the gradient-only default — `siteImage`
+  // would always return the code-level Unsplash fallback.
+  const heroOverride = await siteImageOverride("hero.gifting");
+
   return (
     <>
       <Hero
@@ -146,6 +154,7 @@ export default async function GiftingPage() {
         eyebrow="Gifting"
         title="Made-to-order, made for the moment."
         lede={`Curated collections across corporate, weddings and private events. ${productionLede}`}
+        {...(heroOverride ? { imageUrl: heroOverride } : {})}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">

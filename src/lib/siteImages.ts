@@ -102,6 +102,41 @@ export const SITE_IMAGE_REGISTRY: readonly SiteImageRegistryEntry[] = [
     context: "Banner shown at the top of /contact",
     fallback: images.hero.contact,
   },
+  {
+    key: "hero.journal",
+    label: "Journal hero",
+    group: "Hero banners",
+    context: "Banner shown at the top of /journal",
+    fallback: images.hero.journal,
+  },
+  {
+    key: "hero.faq",
+    label: "FAQ hero",
+    group: "Hero banners",
+    context: "Banner shown at the top of /faq",
+    fallback: images.hero.faq,
+  },
+  {
+    key: "hero.privacy",
+    label: "Privacy policy hero",
+    group: "Hero banners",
+    context: "Banner shown at the top of /privacy",
+    fallback: images.hero.privacy,
+  },
+  {
+    key: "hero.terms",
+    label: "Terms hero",
+    group: "Hero banners",
+    context: "Banner shown at the top of /terms",
+    fallback: images.hero.terms,
+  },
+  {
+    key: "hero.cookies",
+    label: "Cookies policy hero",
+    group: "Hero banners",
+    context: "Banner shown at the top of /cookies",
+    fallback: images.hero.cookies,
+  },
 
   // ============================================================
   // Home page service cards — the four big tiles under "Four
@@ -332,6 +367,23 @@ export async function siteImageAlt(key: string): Promise<string> {
   const overrides = await loadOverrides();
   const override = overrides.get(key);
   return override?.alt ?? entry.defaultAlt ?? entry.label;
+}
+
+/**
+ * Returns ONLY the admin-set override for a slot, or null if none
+ * is configured.
+ *
+ * Use this when the caller needs to distinguish "operator uploaded
+ * a custom image" from "we're showing the code-level default".
+ * Example: the home page swaps to a static `<Hero>` when an
+ * override exists, otherwise it uses the looping `<VideoHero>`.
+ * Plain `siteImage()` can't tell that apart because it transparently
+ * returns the fallback when no override is set.
+ */
+export async function siteImageOverride(key: string): Promise<string | null> {
+  const overrides = await loadOverrides();
+  const row = overrides.get(key);
+  return row?.url ?? null;
 }
 
 /**

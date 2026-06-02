@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Hero } from "@/components/patterns/Hero";
 import { apiFetch } from "@/lib/api";
 import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Journal",
@@ -48,7 +49,7 @@ export default async function JournalPage() {
         eyebrow="Journal"
         title="Notes from the kitchen."
         lede="Recipes, behind-the-scenes, gifting tips and the odd opinion."
-        imageUrl={images.hero.journal}
+        imageUrl={await siteImage("hero.journal")}
       />
       <section className="px-page-gutter section-tight">
         <div className="mx-auto max-w-page">

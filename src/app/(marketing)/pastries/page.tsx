@@ -5,7 +5,7 @@ import { Hero } from "@/components/patterns/Hero";
 import { PastryMenuGrid, type PastryMenuItem } from "@/components/patterns/PastryMenuGrid";
 import { apiFetch } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Pastries",
@@ -53,7 +53,7 @@ export default async function PastriesPage() {
         eyebrow="The kitchen"
         title="Pastries."
         lede="Small batches, made fresh, ready to collect or dispatched cold-chain. Order what you'd like — no subscription required."
-        imageUrl={images.hero.cravings}
+        imageUrl={await siteImage("hero.cravings")}
         height="short"
       />
 

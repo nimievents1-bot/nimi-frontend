@@ -2,7 +2,7 @@ import { type Metadata } from "next";
 
 import { Faq } from "@/components/patterns/Faq";
 import { Hero } from "@/components/patterns/Hero";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Frequently asked",
@@ -75,7 +75,8 @@ const groups: ReadonlyArray<{
   },
 ];
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const heroImageUrl = await siteImage("hero.faq");
   return (
     <>
       <Hero
@@ -83,7 +84,7 @@ export default function FaqPage() {
         eyebrow="Help"
         title="Frequently asked questions."
         lede="The questions we hear most often, with the answers we tend to give."
-        imageUrl={images.hero.faq}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter section-tight">
         <div className="mx-auto max-w-prose">

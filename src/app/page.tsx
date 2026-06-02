@@ -13,7 +13,7 @@ import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
 import { getBlock } from "@/lib/content";
 import { heroBackground, images } from "@/lib/images";
-import { siteImages } from "@/lib/siteImages";
+import { siteImageOverride, siteImages } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Nimi Events — Authentically African catering, planning & gifting",
@@ -118,6 +118,19 @@ export default async function HomePage() {
     mediaStyle: heroBackground(imageMap[s.imageKey] ?? ""),
   }));
 
+  // Hero image priority for the home page:
+  //   1. Admin override at `hero.home` via /admin/images — always wins.
+  //   2. ContentBlock-published `imageUrl` for `home/hero` from the
+  //      legacy CMS surface.
+  //   3. None of the above → render the looping `<VideoHero>`.
+  // We need to distinguish "admin override exists" from "fell back
+  // to the code default" because the video hero is what we want
+  // when neither the admin nor the CMS has set an image — the
+  // resolved-with-fallback URL from `siteImages()` can't tell us
+  // that.
+  const heroOverrideUrl = await siteImageOverride("hero.home");
+  const heroImageForStatic = heroOverrideUrl ?? hero?.imageUrl ?? null;
+
   return (
     <>
       {/*
@@ -150,15 +163,15 @@ export default async function HomePage() {
         looping video. For the default branding state, the video
         wins.
       */}
-      {hero?.imageUrl ? (
+      {heroImageForStatic ? (
         <Hero
-          eyebrow={hero.eyebrow ?? "Catering · Events · Gifting · Content"}
-          title={hero.headline ?? "Where good food gathers."}
+          eyebrow={hero?.eyebrow ?? "Catering · Events · Gifting · Content"}
+          title={hero?.headline ?? "Where good food gathers."}
           lede={
-            hero.subheadline ??
+            hero?.subheadline ??
             "Authentically African flavours, considered planning, and gifts that arrive on time."
           }
-          imageUrl={hero.imageUrl}
+          imageUrl={heroImageForStatic}
         />
       ) : (
         <VideoHero

@@ -5,6 +5,7 @@ import { Hero } from "@/components/patterns/Hero";
 import { Tag } from "@/components/primitives/Tag";
 import { ApiError, apiFetch } from "@/lib/api";
 import { heroBackground, images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 const CATEGORY_FALLBACK_IMAGE: Record<string, string> = {
   CORPORATE: images.gifting.essential,
@@ -77,6 +78,12 @@ export default async function GiftCollectionPage({ params }: { params: Promise<{
     throw err;
   }
 
+  // Final-fallback hero image when the collection has none of its
+  // own photography and no slug/category fallback hits. Reads
+  // through the admin override so swapping it in /admin/images
+  // propagates here too.
+  const giftingHeroFallback = await siteImage("hero.gifting");
+
   const fmt = new Intl.NumberFormat("en-GB", { style: "currency", currency: c.currency.toUpperCase() });
   const unit = fmt.format(c.unitPriceMinor / 100);
   const max = c.priceMaxMinor ? fmt.format(c.priceMaxMinor / 100) : null;
@@ -90,7 +97,7 @@ export default async function GiftCollectionPage({ params }: { params: Promise<{
         title={c.name}
         lede={c.description}
         imageUrl={
-          c.imageUrl ?? SLUG_FALLBACK_IMAGE[c.slug] ?? CATEGORY_FALLBACK_IMAGE[c.category] ?? images.hero.gifting
+          c.imageUrl ?? SLUG_FALLBACK_IMAGE[c.slug] ?? CATEGORY_FALLBACK_IMAGE[c.category] ?? giftingHeroFallback
         }
       />
       <section className="px-page-gutter section-tight">
@@ -110,7 +117,7 @@ export default async function GiftCollectionPage({ params }: { params: Promise<{
                 c.imageUrl ??
                   SLUG_FALLBACK_IMAGE[c.slug] ??
                   CATEGORY_FALLBACK_IMAGE[c.category] ??
-                  images.hero.gifting,
+                  giftingHeroFallback,
               )}
             />
 

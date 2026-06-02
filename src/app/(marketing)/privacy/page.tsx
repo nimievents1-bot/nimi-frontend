@@ -1,14 +1,15 @@
 import { type Metadata } from "next";
 
 import { Hero } from "@/components/patterns/Hero";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
   description: "How Nimi Events handles your personal information.",
 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const heroImageUrl = await siteImage("hero.privacy");
   return (
     <>
       <Hero
@@ -16,7 +17,7 @@ export default function PrivacyPage() {
         eyebrow="Legal"
         title="Privacy policy."
         lede="The short version: we collect what we need, we keep it secure, and we don't sell it."
-        imageUrl={images.hero.privacy}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter section-tight">
         <article className="prose prose-stone mx-auto max-w-prose font-sans text-base leading-relaxed text-neutral-800">

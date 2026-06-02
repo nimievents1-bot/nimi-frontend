@@ -5,7 +5,7 @@ import { PastryMenuGrid, type PastryMenuItem } from "@/components/patterns/Pastr
 import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 import { PlanGrid } from "./PlanGrid";
 
@@ -126,7 +126,7 @@ export default async function IndulgenceClubPage() {
         eyebrow="The Nimi Indulgence Club"
         title="Plan your indulgence."
         lede="For the moments you know you'll want something sweet or savoury — but planned in advance."
-        imageUrl={images.hero.cravings}
+        imageUrl={await siteImage("hero.cravings")}
       />
 
       {/* Purpose section — sets the emotional + functional pitch. */}

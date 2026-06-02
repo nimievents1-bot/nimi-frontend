@@ -1,14 +1,15 @@
 import { type Metadata } from "next";
 
 import { Hero } from "@/components/patterns/Hero";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Cookie policy",
   description: "How we use cookies on nimievents.co.uk.",
 };
 
-export default function CookiesPage() {
+export default async function CookiesPage() {
+  const heroImageUrl = await siteImage("hero.cookies");
   return (
     <>
       <Hero
@@ -16,7 +17,7 @@ export default function CookiesPage() {
         eyebrow="Legal"
         title="Cookie policy."
         lede="What we use, why, and how to opt out."
-        imageUrl={images.hero.cookies}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter section-tight">
         <article className="mx-auto max-w-prose font-sans text-base leading-relaxed text-neutral-800">

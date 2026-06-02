@@ -1,14 +1,15 @@
 import { type Metadata } from "next";
 
 import { Hero } from "@/components/patterns/Hero";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Terms & conditions",
   description: "The terms governing your use of nimievents.co.uk and the services we offer.",
 };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const heroImageUrl = await siteImage("hero.terms");
   return (
     <>
       <Hero
@@ -16,7 +17,7 @@ export default function TermsPage() {
         eyebrow="Legal"
         title="Terms & conditions."
         lede="The boring necessary stuff. We've kept it as plain as we can."
-        imageUrl={images.hero.terms}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter section-tight">
         <article className="mx-auto max-w-prose font-sans text-base leading-relaxed text-neutral-800">

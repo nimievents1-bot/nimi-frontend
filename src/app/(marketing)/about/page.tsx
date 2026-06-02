@@ -3,13 +3,15 @@ import { type Metadata } from "next";
 import { Hero } from "@/components/patterns/Hero";
 import { SocialLinks } from "@/components/patterns/SocialLinks";
 import { heroBackground, images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "About",
   description: "The story of Nimi Events — family kitchen, hospitality standard.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const heroImageUrl = await siteImage("hero.about");
   return (
     <>
       <Hero
@@ -17,7 +19,7 @@ export default function AboutPage() {
         eyebrow="About"
         title="A family kitchen, scaled with care."
         lede="Born from a stovetop, run like a hotel."
-        imageUrl={images.hero.about}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto grid max-w-page gap-12 md:grid-cols-[1fr_1.2fr]">

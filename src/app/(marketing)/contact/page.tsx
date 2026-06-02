@@ -2,7 +2,7 @@ import { type Metadata } from "next";
 
 import { Hero } from "@/components/patterns/Hero";
 import { SocialLinks } from "@/components/patterns/SocialLinks";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 import { ContactForm } from "./ContactForm";
 
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: "Tell us about your event, gift box, or pastry subscription.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const heroImageUrl = await siteImage("hero.contact");
   return (
     <>
       <Hero
@@ -19,7 +20,7 @@ export default function ContactPage() {
         eyebrow="Hello"
         title="Get in touch."
         lede="Tell us a little about what you have in mind. We reply within one working day."
-        imageUrl={images.hero.contact}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter section-tight">
         <div className="mx-auto max-w-2xl">

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Hero } from "@/components/patterns/Hero";
 import { Tag } from "@/components/primitives/Tag";
 import { clientEnv } from "@/lib/env";
-import { images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 import { CalBookingButton } from "./CalBookingButton";
 
@@ -54,7 +54,8 @@ const options: ReadonlyArray<ConsultationOption> = [
   },
 ];
 
-export default function ConsultationPage() {
+export default async function ConsultationPage() {
+  const heroImageUrl = await siteImage("hero.events");
   const username = clientEnv.NEXT_PUBLIC_CAL_USERNAME;
   const isConfigured = Boolean(username);
 
@@ -65,7 +66,7 @@ export default function ConsultationPage() {
         eyebrow="Event planning"
         title="Book a consultation."
         lede="Paid, focused, scheduled. The fastest way to turn an idea into a plan."
-        imageUrl={images.hero.events}
+        imageUrl={heroImageUrl}
       />
 
       <section className="px-page-gutter py-section-y">

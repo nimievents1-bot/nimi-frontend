@@ -5,6 +5,7 @@ import { Card } from "@/components/patterns/Card";
 import { Hero } from "@/components/patterns/Hero";
 import { Button } from "@/components/primitives/Button";
 import { heroBackground, images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Catering — Authentically African flavours",
@@ -68,7 +69,10 @@ const tiers: ReadonlyArray<CateringTier> = [
   },
 ];
 
-export default function CateringPage() {
+export default async function CateringPage() {
+  // Resolve admin-editable hero image — falls back to the
+  // code-level default when no override exists.
+  const heroImageUrl = await siteImage("hero.catering");
   return (
     <>
       <Hero
@@ -76,7 +80,7 @@ export default function CateringPage() {
         eyebrow="Catering"
         title="Authentically African catering, crafted for every occasion."
         lede="Rooted in African flavours. Designed for memorable gatherings."
-        imageUrl={images.hero.catering}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">

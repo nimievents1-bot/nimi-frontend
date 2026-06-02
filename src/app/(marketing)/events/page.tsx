@@ -5,6 +5,7 @@ import { Card } from "@/components/patterns/Card";
 import { Hero } from "@/components/patterns/Hero";
 import { Button } from "@/components/primitives/Button";
 import { heroBackground, images } from "@/lib/images";
+import { siteImage } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Event planning, hosted with care",
@@ -73,7 +74,8 @@ const tiers: ReadonlyArray<EventsTier> = [
   },
 ];
 
-export default function EventsPage() {
+export default async function EventsPage() {
+  const heroImageUrl = await siteImage("hero.events");
   return (
     <>
       <Hero
@@ -81,7 +83,7 @@ export default function EventsPage() {
         eyebrow="Event planning"
         title="Hosted with care."
         lede="We quietly run the day so you don't have to."
-        imageUrl={images.hero.events}
+        imageUrl={heroImageUrl}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
