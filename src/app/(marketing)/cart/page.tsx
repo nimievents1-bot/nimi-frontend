@@ -346,6 +346,8 @@ export default async function CartPage({
                 anyUnavailable={view.lines.some((l) => !l.available)}
                 meetsAllItemMinimums={view.meetsAllItemMinimums}
                 withinAllBatchLimits={view.withinAllBatchLimits}
+                subtotalMinor={view.subtotalMinor}
+                currency={view.currency}
                 defaults={
                   profile
                     ? {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/primitives/Alert";
 import { Button } from "@/components/primitives/Button";
@@ -34,6 +34,15 @@ interface CheckoutFormProps {
    */
   withinAllBatchLimits: boolean;
   /**
+   * Cart subtotal in minor units. Used to quote the delivery fee
+   * against the active shipping zones as the customer types their
+   * postcode — some zones offer free delivery over a basket
+   * threshold, so the quote depends on this value.
+   */
+  subtotalMinor: number;
+  /** Currency code from the cart view (defaults to gbp). */
+  currency: string;
+  /**
    * Initial values pulled from the customer's saved profile so they
    * don't have to retype their delivery address every checkout. They
    * can still edit any field before placing the order — this is just
@@ -59,6 +68,8 @@ export function CheckoutForm({
   anyUnavailable,
   meetsAllItemMinimums,
   withinAllBatchLimits,
+  subtotalMinor,
+  currency,
   defaults,
 }: CheckoutFormProps) {
   const router = useRouter();
@@ -101,6 +112,66 @@ export function CheckoutForm({
   // each issue as its own bullet inside the brand Alert rather than as
   // one semicolon-joined wall of text.
   const [issues, setIssues] = useState<string[] | null>(null);
+
+  // ---- Shipping quote ----
+  // Resolved against the admin's shipping zones whenever the customer
+  // edits their postcode. Shows up as a live "Delivery: £X.XX" line
+  // under the postcode input so the customer knows what they'll be
+  // charged before they hit Place order. Server recomputes at submit
+  // time — this client value is purely for display, never trusted.
+  type ShippingQuote =
+    | { ok: true; zoneName: string; feeMinor: number; freeOverApplied: boolean }
+    | { ok: false; message: string };
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
+  const [shippingQuoting, setShippingQuoting] = useState(false);
+
+  // Debounced quote: 300ms after the customer pauses typing, fire the
+  // public `/shipping/quote` endpoint. AbortController guards against
+  // the classic stale-response race when a slow request finishes
+  // after a faster one.
+  useEffect(() => {
+    const trimmed = shippingPostcode.trim();
+    // UK postcodes are 5-8 chars including the inner space. Anything
+    // shorter than 3 is almost certainly mid-typing — skip to avoid
+    // pointless requests + flicker.
+    if (trimmed.length < 3) {
+      setShippingQuote(null);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      void (async () => {
+        setShippingQuoting(true);
+        try {
+          const params = new URLSearchParams({
+            postcode: trimmed,
+            subtotalMinor: String(subtotalMinor),
+          });
+          const data = await apiFetch<ShippingQuote>(
+            `/shipping/quote?${params.toString()}`,
+            { method: "GET", cache: "no-store", signal: controller.signal },
+          );
+          if (!controller.signal.aborted) setShippingQuote(data);
+        } catch {
+          // Network blip → leave the previous quote in place rather
+          // than flicker an error. Server recomputes at submit
+          // anyway, so the customer never gets miscalculated.
+        } finally {
+          if (!controller.signal.aborted) setShippingQuoting(false);
+        }
+      })();
+    }, 300);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [shippingPostcode, subtotalMinor]);
+
+  const fmt = (minor: number) =>
+    new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).format(minor / 100);
 
   /** Apply / re-validate the promo code against the cart. Read-only. */
   const onApplyPromo = async () => {
@@ -282,6 +353,53 @@ export function CheckoutForm({
           onChange={(e) => setShippingPostcode(e.target.value)}
         />
       </div>
+
+      {/*
+        Live delivery-fee preview. Renders immediately under the
+        address block (full width below the line/city/postcode grid)
+        so the customer sees the resolved fee land alongside their
+        typing. Three states:
+          1. nothing typed yet → silent (no row).
+          2. quote pending     → grey italic "Calculating delivery…".
+          3. quote returned    → either the fee + zone name + "free
+                                 over £X" tag, OR the "we don't ship
+                                 there yet" message from the API.
+        The server recomputes the fee at submit time, so this UI is
+        purely informational — trusting it would let a malicious
+        client send a low value through; the API doesn't.
+      */}
+      {shippingPostcode.trim().length >= 3 ? (
+        <div className="-mt-3 mb-6 border-l-4 border-orange-300 bg-cream-50 px-4 py-3 font-sans text-sm">
+          {shippingQuoting ? (
+            <p className="m-0 italic text-neutral-500">Calculating delivery…</p>
+          ) : !shippingQuote ? (
+            // Quote hasn't come back yet on first render — quiet
+            // placeholder rather than empty space.
+            <p className="m-0 italic text-neutral-500">
+              Delivery fee will appear here.
+            </p>
+          ) : shippingQuote.ok ? (
+            <p className="m-0 text-neutral-800">
+              <span className="font-medium text-maroon-700">Delivery:</span>{" "}
+              {shippingQuote.feeMinor === 0 ? (
+                <strong className="font-display text-orange-700">
+                  Free
+                  {shippingQuote.freeOverApplied ? " — basket threshold reached" : ""}
+                </strong>
+              ) : (
+                <strong className="font-display text-orange-700">
+                  {fmt(shippingQuote.feeMinor)}
+                </strong>
+              )}{" "}
+              <span className="italic text-neutral-500">
+                · {shippingQuote.zoneName}
+              </span>
+            </p>
+          ) : (
+            <p className="m-0 text-semantic-danger">{shippingQuote.message}</p>
+          )}
+        </div>
+      ) : null}
 
       <TextareaField
         label="Notes for the kitchen (optional)"
