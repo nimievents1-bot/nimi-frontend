@@ -276,7 +276,15 @@ export function CheckoutForm({
     !withinAllBatchLimits;
 
   return (
-    <form noValidate onSubmit={onSubmit} className="space-y-1">
+    // React's `onSubmit` type is `(e) => void`; our handler is async,
+    // so we adapt with a void wrapper to satisfy `no-misused-promises`.
+    <form
+      noValidate
+      onSubmit={(e) => {
+        void onSubmit(e);
+      }}
+      className="space-y-1"
+    >
       {/* Validation issues — rendered as a bulleted list inside the
           brand Alert so each problem is scannable on its own line.
           Title is friendly ("Please check the highlighted fields")
@@ -466,7 +474,9 @@ export function CheckoutForm({
             />
             <button
               type="button"
-              onClick={onApplyPromo}
+              onClick={() => {
+                void onApplyPromo();
+              }}
               disabled={promoPending}
               className="border border-maroon-600 bg-maroon-600 px-4 py-2 font-display italic text-cream-50 transition hover:bg-maroon-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
