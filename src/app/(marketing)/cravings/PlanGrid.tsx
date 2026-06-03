@@ -21,6 +21,12 @@ interface PublicPlan {
   position: number;
   /** API returns this; when false the tier is shown disabled with "Coming soon". */
   stripeReady?: boolean;
+  /**
+   * Optional hero image set by the admin via /admin/cravings/[slug].
+   * When set, it wins over the per-position placeholder photography.
+   * Null/undefined → fall back to the existing PLAN_IMAGES mapping.
+   */
+  imageUrl?: string | null;
 }
 
 interface Props {
@@ -99,7 +105,12 @@ export function PlanGrid({ plans }: Props) {
               title={fmt.format(p.monthlyAmountMinor / 100) + " / month"}
               description={p.description ?? p.name}
               {...(flagship ? { flagship: true } : {})}
-              mediaStyle={heroBackground(PLAN_IMAGES[i] ?? images.cravings.medium)}
+              mediaStyle={heroBackground(
+                // Admin-uploaded image wins; fall through to the
+                // per-position placeholder photography, then the
+                // medium fallback as the last resort.
+                p.imageUrl ?? PLAN_IMAGES[i] ?? images.cravings.medium,
+              )}
             >
               <div className="mb-4 flex flex-wrap gap-2">
                 <Tag>3-mo minimum</Tag>

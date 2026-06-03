@@ -40,6 +40,13 @@ interface PublicPlan {
    * publishes via the upsert endpoint to flip this true.
    */
   stripeReady?: boolean;
+  /**
+   * Admin-uploaded hero image for this tier card. Set via the
+   * /admin/cravings/[slug] editor. PlanGrid uses this in preference
+   * to the position-based placeholder photography when present.
+   * Null when the admin has not uploaded one yet.
+   */
+  imageUrl?: string | null;
 }
 
 const benefits: readonly { title: string; description: string }[] = [

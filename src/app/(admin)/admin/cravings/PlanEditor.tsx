@@ -45,6 +45,12 @@ export interface ExistingPlan {
   position: number;
   active: boolean;
   stripeReady: boolean;
+  /**
+   * Optional hero image for the plan card on /cravings. Null when
+   * no image has been uploaded — the public site renders the brand
+   * gradient placeholder in that case.
+   */
+  imageUrl: string | null;
 }
 
 interface Props {
@@ -69,6 +75,11 @@ export function PlanEditor({ existing }: Props) {
   );
   const [position, setPosition] = useState(String(existing?.position ?? 0));
   const [active, setActive] = useState(existing?.active ?? true);
+  // Optional hero image URL for the plan card on /cravings. Same
+  // R2-upload pattern as other admin editors. Blank state means
+  // "no image" — the public site renders the brand gradient.
+  const [imageUrl, setImageUrl] = useState(existing?.imageUrl ?? "");
+  const [uploading, setUploading] = useState(false);
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,6 +134,11 @@ export function PlanEditor({ existing }: Props) {
           currency: existing?.currency ?? "gbp",
           position: Number(position) || 0,
           active,
+          // Tri-state: empty string → null (clear); URL → set; the
+          // API distinguishes undefined (don't touch) from null
+          // (clear) so blanking the field actually wipes the
+          // existing image rather than preserving it.
+          imageUrl: imageUrl.trim() ? imageUrl.trim() : null,
         },
       });
       router.push("/admin/cravings");
@@ -158,6 +174,10 @@ export function PlanEditor({ existing }: Props) {
           currency: existing.currency,
           position: existing.position,
           active: false,
+          // Preserve the existing image — hiding a tier shouldn't
+          // wipe the photo. Send `undefined` (not in body) when no
+          // image was set so the API leaves the column alone.
+          ...(existing.imageUrl ? { imageUrl: existing.imageUrl } : {}),
         },
       });
       router.push("/admin/cravings");
@@ -165,6 +185,37 @@ export function PlanEditor({ existing }: Props) {
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Couldn't hide the tier.");
       setPending(false);
+    }
+  };
+
+  /**
+   * Image upload via the existing `/api/upload/image` route (R2
+   * pipeline). On success we populate the URL field — the operator
+   * still has to click Save to commit, so they can change their
+   * mind before publishing.
+   */
+  const onFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !data.url) {
+        throw new Error(data.error ?? "Upload failed.");
+      }
+      setImageUrl(data.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -271,6 +322,61 @@ export function PlanEditor({ existing }: Props) {
           </span>
         </label>
       </div>
+
+      {/*
+        Optional tier card image. Uploaded image gets pushed to R2
+        and the resulting URL pre-fills the field. The operator can
+        also paste an external URL or leave it blank to keep the
+        brand-gradient placeholder. Live preview sits above so they
+        can see exactly what the public card will use.
+      */}
+      <fieldset className="border border-cream-200 bg-cream-50 p-4">
+        <legend className="px-2 font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
+          Tier card image (optional)
+        </legend>
+        {imageUrl.trim() ? (
+          <div
+            role="img"
+            aria-label="Current tier image"
+            className="mb-3 aspect-[3/2] w-full max-w-xs bg-cream-100"
+            style={{
+              backgroundImage: `url("${imageUrl}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        ) : null}
+        <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+          <label className="flex flex-col gap-1">
+            <span className="font-sans text-xs uppercase tracking-[0.16em] text-neutral-700">
+              Image URL
+            </span>
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://… (blank = brand gradient placeholder)"
+              className={fieldClass}
+            />
+            <span className="font-sans text-xs italic text-neutral-500">
+              Blank = the public site falls back to the brand gradient.
+            </span>
+          </label>
+
+          <label className="inline-flex items-center justify-center border border-cream-200 bg-paper px-4 py-2 font-display text-base italic text-maroon-700 hover:border-orange-200 hover:bg-orange-100">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                void onFileSelected(e);
+              }}
+              disabled={uploading}
+              className="sr-only"
+            />
+            {uploading ? "Uploading…" : "Upload from device"}
+          </label>
+        </div>
+      </fieldset>
 
       <label className="flex items-center gap-2 font-sans text-sm text-neutral-800">
         <input
