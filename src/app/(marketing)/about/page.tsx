@@ -2,8 +2,8 @@ import { type Metadata } from "next";
 
 import { Hero } from "@/components/patterns/Hero";
 import { SocialLinks } from "@/components/patterns/SocialLinks";
-import { heroBackground, images } from "@/lib/images";
-import { siteImage } from "@/lib/siteImages";
+import { heroBackground } from "@/lib/images";
+import { siteImages } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "About",
@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const heroImageUrl = await siteImage("hero.about");
+  // Resolve every image slot the page uses in a single batched
+  // call. Both keys fall back to their code-level defaults when
+  // the admin hasn't uploaded an override yet, so the page keeps
+  // rendering even on first deploy.
+  const imageMap = await siteImages("hero.about", "about.founder");
   return (
     <>
       <Hero
@@ -19,7 +23,7 @@ export default async function AboutPage() {
         eyebrow="About"
         title="A family kitchen, scaled with care."
         lede="Born from a stovetop, run like a hotel."
-        imageUrl={heroImageUrl}
+        imageUrl={imageMap["hero.about"] ?? ""}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto grid max-w-page gap-12 md:grid-cols-[1fr_1.2fr]">
@@ -27,7 +31,7 @@ export default async function AboutPage() {
             role="img"
             aria-label="Founder portrait — kitchen workspace"
             className="aspect-[3/4] bg-gradient-to-br from-orange-300 to-maroon-700"
-            style={heroBackground(images.about.founder)}
+            style={heroBackground(imageMap["about.founder"] ?? "")}
           />
           <div className="max-w-prose">
             <p className="eyebrow mb-3">The story</p>

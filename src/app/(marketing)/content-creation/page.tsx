@@ -5,7 +5,8 @@ import { Card } from "@/components/patterns/Card";
 import { Hero } from "@/components/patterns/Hero";
 import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
-import { heroBackground, images } from "@/lib/images";
+import { heroBackground } from "@/lib/images";
+import { siteImages } from "@/lib/siteImages";
 
 export const metadata: Metadata = {
   title: "Event content creation — mobile videography & photography",
@@ -13,36 +14,54 @@ export const metadata: Metadata = {
     "Mobile videography and photography for weddings, brand activations, milestone celebrations and editorial events. Same crew, same standard, same care.",
 };
 
-const formats: Array<{
-  eyebrow: string;
-  title: string;
-  description: string;
-  mediaStyle: ReturnType<typeof heroBackground>;
-}> = [
+/**
+ * Format cards. Image URLs are resolved INSIDE the component
+ * because they depend on the admin overrides loaded via
+ * `siteImages()`. Copy stays here as a module-level constant for
+ * readability; the lookup happens once per render.
+ */
+const formatContent = [
   {
     eyebrow: "Photography",
     title: "Stills that hold the moment.",
     description:
       "Editorial-style photography that captures the room, the food, the people, and the small details that make the day feel like yours.",
-    mediaStyle: heroBackground(images.content.photography),
+    imageKey: "content.photography",
   },
   {
     eyebrow: "Mobile videography",
     title: "Films, made for the feed.",
     description:
       "Same-day reels and short films optimised for social — fast turnaround, cinematic feel, ready to share before the night is over.",
-    mediaStyle: heroBackground(images.content.videography),
+    imageKey: "content.videography",
   },
   {
     eyebrow: "Delivery",
     title: "Quick, considered, branded.",
     description:
       "Edited highlight reels within 48 hours. Full galleries within two weeks. Optional brand-tagged versions for corporate clients.",
-    mediaStyle: heroBackground(images.content.delivery),
+    imageKey: "content.delivery",
   },
-];
+] as const;
 
-export default function ContentCreationPage() {
+export default async function ContentCreationPage() {
+  // Resolve every image slot in a single batched call so the
+  // admin overrides take effect immediately and we don't waterfall
+  // five lookups in series.
+  const imageMap = await siteImages(
+    "hero.content-creation",
+    "content.photography",
+    "content.videography",
+    "content.delivery",
+    "content.bookings-promo",
+  );
+  const formats = formatContent.map((f) => ({
+    eyebrow: f.eyebrow,
+    title: f.title,
+    description: f.description,
+    mediaStyle: heroBackground(imageMap[f.imageKey] ?? ""),
+  }));
+
   return (
     <>
       <Hero
@@ -50,7 +69,7 @@ export default function ContentCreationPage() {
         eyebrow="Content creation"
         title="Event media, captured well."
         lede="Mobile videography and photography for weddings, brand activations, and milestone celebrations — by the same team that runs your day."
-        imageUrl={images.content.hero}
+        imageUrl={imageMap["hero.content-creation"] ?? ""}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
@@ -101,7 +120,7 @@ export default function ContentCreationPage() {
             role="img"
             aria-label="A photographer at work during an event"
             className="aspect-[5/4] bg-gradient-to-br from-orange-200 to-maroon-700"
-            style={heroBackground(images.content.videography)}
+            style={heroBackground(imageMap["content.bookings-promo"] ?? "")}
           />
         </div>
       </section>

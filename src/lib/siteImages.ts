@@ -188,6 +188,66 @@ export const SITE_IMAGE_REGISTRY: readonly SiteImageRegistryEntry[] = [
   },
 
   // ============================================================
+  // About page — founder portrait tile.
+  //
+  // Lives alongside the "The story" section heading on /about.
+  // Registered separately from `hero.about` because the operator
+  // may want to swap the inline portrait without touching the
+  // full-bleed hero banner above it.
+  // ============================================================
+  {
+    key: "about.founder",
+    label: "Founder portrait (about)",
+    group: "About page",
+    context: "Portrait tile on the /about story section",
+    fallback: images.about.founder,
+    defaultAlt: "Founder portrait — kitchen workspace",
+  },
+
+  // ============================================================
+  // Content-creation page — hero + three format cards + bookings
+  // promo image. Distinct from the other heroes because /content-
+  // creation has its own dedicated photography rather than reusing
+  // catering / events stock.
+  // ============================================================
+  {
+    key: "hero.content-creation",
+    label: "Content creation hero",
+    group: "Hero banners",
+    context: "Banner shown at the top of /content-creation",
+    fallback: images.content.hero,
+  },
+  {
+    key: "content.photography",
+    label: "Photography format card",
+    group: "Content creation",
+    context: "Format card on /content-creation — 'Stills that hold the moment.'",
+    fallback: images.content.photography,
+  },
+  {
+    key: "content.videography",
+    label: "Videography format card",
+    group: "Content creation",
+    context: "Format card on /content-creation — 'Films, made for the feed.'",
+    fallback: images.content.videography,
+  },
+  {
+    key: "content.delivery",
+    label: "Delivery format card",
+    group: "Content creation",
+    context: "Format card on /content-creation — 'Quick, considered, branded.'",
+    fallback: images.content.delivery,
+  },
+  {
+    key: "content.bookings-promo",
+    label: "Bookings promo image (content)",
+    group: "Content creation",
+    context: "Image on the 'Pricing is custom' strip at the bottom of /content-creation",
+    fallback: images.content.videography,
+    defaultAlt: "A photographer at work during an event",
+  },
+
+  // ============================================================
   // Catering tier cards — buffet, family-style, plated.
   // ============================================================
   {
