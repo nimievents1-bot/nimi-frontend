@@ -129,6 +129,43 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
                         </dd>
                       </>
                     ) : null}
+                    {item.customisation.logoUrl ? (
+                      <>
+                        <dt className="text-neutral-500">Logo</dt>
+                        {/*
+                          Customer-supplied asset. We render a small
+                          inline preview when it's a raster (server
+                          re-encoded to .webp) and a plain "Download"
+                          link otherwise. The link uses `rel="noopener"`
+                          and opens in a new tab so the admin never
+                          loses the order context, and the underlying
+                          asset is served from R2 with a forced
+                          attachment disposition for SVG/PDF — so the
+                          browser will download rather than render the
+                          original vector inline.
+                        */}
+                        <dd className="text-neutral-800">
+                          <div className="flex items-center gap-3">
+                            {/\.webp(\?|$)/i.test(item.customisation.logoUrl) ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={item.customisation.logoUrl}
+                                alt="Customer-supplied logo"
+                                className="h-10 w-10 border border-cream-200 bg-paper object-contain"
+                              />
+                            ) : null}
+                            <a
+                              href={item.customisation.logoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-sans text-sm text-maroon-600 underline hover:no-underline"
+                            >
+                              Open / download
+                            </a>
+                          </div>
+                        </dd>
+                      </>
+                    ) : null}
                   </dl>
                 ) : null}
               </div>

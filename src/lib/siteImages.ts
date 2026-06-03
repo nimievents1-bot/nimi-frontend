@@ -172,6 +172,22 @@ export const SITE_IMAGE_REGISTRY: readonly SiteImageRegistryEntry[] = [
   },
 
   // ============================================================
+  // Home-page Indulgence Club teaser tile. Renders inside the
+  // "Plan your indulgence." promo strip on `/`. Kept under its
+  // own key (rather than reusing `hero.cravings`) so the operator
+  // can choose a different photograph for the home teaser vs. the
+  // full-bleed hero on `/cravings`.
+  // ============================================================
+  {
+    key: "home.indulgence-teaser",
+    label: "Indulgence Club teaser (home)",
+    group: "Service cards",
+    context: "Tile on the home page promo strip linking to /cravings",
+    fallback: images.cravings.teaser,
+    defaultAlt: "A curated pastry box from The Nimi Indulgence Club",
+  },
+
+  // ============================================================
   // Catering tier cards — buffet, family-style, plated.
   // ============================================================
   {

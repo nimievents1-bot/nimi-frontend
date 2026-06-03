@@ -12,8 +12,9 @@ import { Testimonials } from "@/components/patterns/Testimonials";
 import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
 import { getBlock } from "@/lib/content";
-import { heroBackground, images } from "@/lib/images";
+import { heroBackground } from "@/lib/images";
 import { siteImageOverride, siteImages } from "@/lib/siteImages";
+import { siteSettings } from "@/lib/siteSettings";
 
 export const metadata: Metadata = {
   title: "Nimi Events — Authentically African catering, planning & gifting",
@@ -112,11 +113,25 @@ export default async function HomePage() {
     "services.events",
     "services.gifting",
     "services.content",
+    "home.indulgence-teaser",
   );
   const services = servicesContent.map((s) => ({
     ...s,
     mediaStyle: heroBackground(imageMap[s.imageKey] ?? ""),
   }));
+
+  // Admin-editable text snippets for the home page. Fetched in a
+  // single batched call so we don't make one round-trip per
+  // setting. Every key has a code-level fallback in the registry
+  // so the page keeps rendering even if the admin hasn't touched
+  // these yet or the settings API is briefly unavailable.
+  const homeText = await siteSettings(
+    "home.indulgence.eyebrow",
+    "home.indulgence.heading",
+    "home.indulgence.body",
+    "home.indulgence.cta",
+    "home.indulgence.tag",
+  );
 
   // Hero image priority for the home page:
   //   1. Admin override at `hero.home` via /admin/images — always wins.
@@ -202,29 +217,35 @@ export default async function HomePage() {
         </section>
 
         <section className="bg-cream-100 px-page-gutter py-section-y">
+          {/*
+            All five text strings + the teaser image are resolved from
+            the admin registry. Editing any of them under /admin/settings
+            (text) or /admin/images (image) updates this strip without
+            a code change. The `whitespace-pre-line` on the body lets
+            the operator break the paragraph with newlines if they
+            choose to.
+          */}
           <div className="mx-auto grid max-w-page gap-10 md:grid-cols-[1.2fr_1fr] md:items-center">
             <div>
-              <p className="eyebrow mb-3">The Nimi Indulgence Club</p>
+              <p className="eyebrow mb-3">{homeText["home.indulgence.eyebrow"]}</p>
               <h2 className="m-0 mb-4 font-display text-4xl font-medium text-maroon-600">
-                Plan your indulgence.
+                {homeText["home.indulgence.heading"]}
               </h2>
-              <p className="mb-6 max-w-prose font-sans text-lg text-neutral-700">
-                Set aside a monthly indulgence allowance that turns into curated pastries, made
-                fresh by Nimi Events. Priority access, exclusive drops, and the occasional surprise
-                — instead of last-minute spending.
+              <p className="mb-6 max-w-prose whitespace-pre-line font-sans text-lg text-neutral-700">
+                {homeText["home.indulgence.body"]}
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <Link href="/cravings">
-                  <Button>Join the club</Button>
+                  <Button>{homeText["home.indulgence.cta"]}</Button>
                 </Link>
-                <Tag variant="orange">3-month minimum · Credits valid 3 months</Tag>
+                <Tag variant="orange">{homeText["home.indulgence.tag"]}</Tag>
               </div>
             </div>
             <div
               role="img"
               aria-label="A curated pastry box from The Nimi Indulgence Club"
               className="aspect-[5/4] bg-gradient-to-br from-orange-200 to-maroon-700"
-              style={heroBackground(images.cravings.teaser)}
+              style={heroBackground(imageMap["home.indulgence-teaser"] ?? "")}
             />
           </div>
         </section>

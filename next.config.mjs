@@ -8,12 +8,25 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://js.stripe.com",
+      // script-src: any new third-party widget that needs to run JS on
+      // our origin must be allow-listed here. We deliberately avoid a
+      // blanket `https:` because that defeats the purpose of CSP — every
+      // origin below corresponds to a vetted integration:
+      //   - challenges.cloudflare.com → Turnstile bot protection
+      //   - js.stripe.com              → Stripe Checkout / Elements
+      //   - app.cal.com                → Cal.com consultation embed (embed.js)
+      //   - cal.com                    → Cal.com modal iframe assets
+      "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://js.stripe.com https://app.cal.com https://cal.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' https: wss:",
-      "frame-src https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com",
+      // frame-src: Cal.com renders the booking modal as an iframe served
+      // from `cal.com` (the embed script bootstraps the iframe pointed
+      // at `https://cal.com/<user>/<event>`). Without these two origins
+      // here the browser blocks the iframe and the modal opens to a
+      // blank rectangle.
+      "frame-src https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com https://app.cal.com https://cal.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -62,6 +62,53 @@ export const SITE_SETTINGS_REGISTRY: readonly SiteSettingRegistryEntry[] = [
       "Production time is six to twelve weeks depending on complexity — every item is custom and made to order.",
     multiline: true,
   },
+
+  // ============================================================
+  // Home page — "Plan your indulgence." promo strip.
+  //
+  // The whole tile is editable: eyebrow chip, headline, body
+  // paragraph, CTA label, and the small "minimum / credits" tag.
+  // The image is registered as `home.indulgence-teaser` in
+  // SITE_IMAGE_REGISTRY (see siteImages.ts) so the operator can
+  // change the photograph from /admin/images.
+  // ============================================================
+  {
+    key: "home.indulgence.eyebrow",
+    label: "Indulgence promo — eyebrow",
+    group: "Home page",
+    context: "The orange capsmall chip above the headline (e.g. \"The Nimi Indulgence Club\")",
+    fallback: "The Nimi Indulgence Club",
+  },
+  {
+    key: "home.indulgence.heading",
+    label: "Indulgence promo — headline",
+    group: "Home page",
+    context: "The big maroon serif line (e.g. \"Plan your indulgence.\")",
+    fallback: "Plan your indulgence.",
+  },
+  {
+    key: "home.indulgence.body",
+    label: "Indulgence promo — body",
+    group: "Home page",
+    context: "The paragraph under the headline on the home promo strip",
+    fallback:
+      "Set aside a monthly indulgence allowance that turns into curated pastries, made fresh by Nimi Events. Priority access, exclusive drops, and the occasional surprise — instead of last-minute spending.",
+    multiline: true,
+  },
+  {
+    key: "home.indulgence.cta",
+    label: "Indulgence promo — button label",
+    group: "Home page",
+    context: "The CTA button text (e.g. \"Join the club\")",
+    fallback: "Join the club",
+  },
+  {
+    key: "home.indulgence.tag",
+    label: "Indulgence promo — tag",
+    group: "Home page",
+    context: "The small orange pill next to the button (e.g. \"3-month minimum · Credits valid 3 months\")",
+    fallback: "3-month minimum · Credits valid 3 months",
+  },
 ];
 
 interface SiteSettingRow {
