@@ -7,6 +7,7 @@ import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
 import { heroBackground } from "@/lib/images";
 import { siteImages } from "@/lib/siteImages";
+import { siteSettings } from "@/lib/siteSettings";
 
 export const metadata: Metadata = {
   title: "Event content creation — mobile videography & photography",
@@ -14,75 +15,92 @@ export const metadata: Metadata = {
     "Mobile videography and photography for weddings, brand activations, milestone celebrations and editorial events. Same crew, same standard, same care.",
 };
 
+/** Split a multi-paragraph body into <p>-ready chunks. */
+function paragraphs(body: string): string[] {
+  return body
+    .split(/(?:\r?\n){2,}/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+}
+
 /**
- * Format cards. Image URLs are resolved INSIDE the component
- * because they depend on the admin overrides loaded via
- * `siteImages()`. Copy stays here as a module-level constant for
- * readability; the lookup happens once per render.
+ * Format card identifiers. Each card resolves three text fields
+ * (eyebrow / title / description) and one image from the admin
+ * registries. Keeping the structure as a const array means the
+ * page renders deterministically even if the admin clears a
+ * particular field — the fallback in the registry kicks in.
  */
-const formatContent = [
-  {
-    eyebrow: "Photography",
-    title: "Stills that hold the moment.",
-    description:
-      "Editorial-style photography that captures the room, the food, the people, and the small details that make the day feel like yours.",
-    imageKey: "content.photography",
-  },
-  {
-    eyebrow: "Mobile videography",
-    title: "Films, made for the feed.",
-    description:
-      "Same-day reels and short films optimised for social — fast turnaround, cinematic feel, ready to share before the night is over.",
-    imageKey: "content.videography",
-  },
-  {
-    eyebrow: "Delivery",
-    title: "Quick, considered, branded.",
-    description:
-      "Edited highlight reels within 48 hours. Full galleries within two weeks. Optional brand-tagged versions for corporate clients.",
-    imageKey: "content.delivery",
-  },
-] as const;
+const FORMAT_SLUGS = ["photography", "videography", "delivery"] as const;
 
 export default async function ContentCreationPage() {
-  // Resolve every image slot in a single batched call so the
-  // admin overrides take effect immediately and we don't waterfall
-  // five lookups in series.
-  const imageMap = await siteImages(
-    "hero.content-creation",
-    "content.photography",
-    "content.videography",
-    "content.delivery",
-    "content.bookings-promo",
-  );
-  const formats = formatContent.map((f) => ({
-    eyebrow: f.eyebrow,
-    title: f.title,
-    description: f.description,
-    mediaStyle: heroBackground(imageMap[f.imageKey] ?? ""),
+  // Two batched lookups — one images, one text. Run in parallel
+  // because the two registries are independent. Each one fails
+  // open: a transient API error returns the code-level fallback
+  // rather than breaking the public page.
+  const [imageMap, text] = await Promise.all([
+    siteImages(
+      "hero.content-creation",
+      "content.photography",
+      "content.videography",
+      "content.delivery",
+      "content.bookings-promo",
+    ),
+    siteSettings(
+      "contentCreation.hero.eyebrow",
+      "contentCreation.hero.title",
+      "contentCreation.hero.lede",
+      "contentCreation.intro.eyebrow",
+      "contentCreation.intro.heading",
+      "contentCreation.intro.body",
+      "contentCreation.format.photography.eyebrow",
+      "contentCreation.format.photography.title",
+      "contentCreation.format.photography.description",
+      "contentCreation.format.videography.eyebrow",
+      "contentCreation.format.videography.title",
+      "contentCreation.format.videography.description",
+      "contentCreation.format.delivery.eyebrow",
+      "contentCreation.format.delivery.title",
+      "contentCreation.format.delivery.description",
+      "contentCreation.bookings.eyebrow",
+      "contentCreation.bookings.title",
+      "contentCreation.bookings.body",
+    ),
+  ]);
+
+  // Assemble the format cards from the registry lookups. Each
+  // slug drives both a text-trio (eyebrow / title / description)
+  // and a single image. Keyed off the slug so the operator can
+  // rewrite either freely without us reordering the JSX.
+  const formats = FORMAT_SLUGS.map((slug) => ({
+    eyebrow: text[`contentCreation.format.${slug}.eyebrow`] ?? "",
+    title: text[`contentCreation.format.${slug}.title`] ?? "",
+    description: text[`contentCreation.format.${slug}.description`] ?? "",
+    mediaStyle: heroBackground(imageMap[`content.${slug}`] ?? ""),
   }));
 
   return (
     <>
       <Hero
         height="short"
-        eyebrow="Content creation"
-        title="Event media, captured well."
-        lede="Mobile videography and photography for weddings, brand activations, and milestone celebrations — by the same team that runs your day."
+        eyebrow={text["contentCreation.hero.eyebrow"] ?? ""}
+        title={text["contentCreation.hero.title"] ?? ""}
+        lede={text["contentCreation.hero.lede"] ?? ""}
         imageUrl={imageMap["hero.content-creation"] ?? ""}
       />
       <section className="px-page-gutter py-section-y">
         <div className="mx-auto max-w-page">
-          <p className="eyebrow mb-3">What we cover</p>
+          <p className="eyebrow mb-3">{text["contentCreation.intro.eyebrow"]}</p>
           <h2 className="m-0 mb-4 max-w-3xl font-display text-4xl font-medium text-maroon-600">
-            One crew. Two formats. Quietly capturing.
+            {text["contentCreation.intro.heading"]}
           </h2>
-          <p className="mb-10 max-w-prose font-sans text-lg text-neutral-700">
-            We work alongside your event team — never in the way of your guests — to capture the
-            room as it is. Photography for the album, mobile-first videography for the feed,
-            delivered fast and finished cleanly. Available stand-alone, or bundled with our
-            catering and event-planning services.
-          </p>
+          {paragraphs(text["contentCreation.intro.body"] ?? "").map((para, i) => (
+            <p
+              key={i}
+              className="mb-4 max-w-prose font-sans text-lg text-neutral-700 last:mb-10"
+            >
+              {para}
+            </p>
+          ))}
           <div className="mb-10 flex flex-wrap items-center gap-3">
             <Tag variant="orange">Same-day reels</Tag>
             <Tag>Editorial photography</Tag>
@@ -99,14 +117,18 @@ export default async function ContentCreationPage() {
       <section className="bg-cream-100 px-page-gutter py-section-y">
         <div className="mx-auto grid max-w-page gap-10 md:grid-cols-[1.2fr_1fr] md:items-center">
           <div>
-            <p className="eyebrow mb-3">Bookings</p>
+            <p className="eyebrow mb-3">{text["contentCreation.bookings.eyebrow"]}</p>
             <h2 className="m-0 mb-4 font-display text-4xl font-medium text-maroon-600">
-              Pricing is custom.
+              {text["contentCreation.bookings.title"]}
             </h2>
-            <p className="mb-6 max-w-prose font-sans text-lg text-neutral-700">
-              Custom pricing based on event length, deliverables, and crew size. Minimum half-day
-              bookings. Tell us about your event and we'll send a quote within one working day.
-            </p>
+            {paragraphs(text["contentCreation.bookings.body"] ?? "").map((para, i) => (
+              <p
+                key={i}
+                className="mb-4 max-w-prose font-sans text-lg text-neutral-700 last:mb-6"
+              >
+                {para}
+              </p>
+            ))}
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/contact?topic=content-creation">
                 <Button>Enquire about content</Button>

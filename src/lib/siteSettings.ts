@@ -109,6 +109,213 @@ export const SITE_SETTINGS_REGISTRY: readonly SiteSettingRegistryEntry[] = [
     context: "The small orange pill next to the button (e.g. \"3-month minimum · Credits valid 3 months\")",
     fallback: "3-month minimum · Credits valid 3 months",
   },
+
+  // ============================================================
+  // About page — hero + story section.
+  //
+  // Body uses a single multiline field; the page splits on
+  // blank-line boundaries and renders each chunk as its own
+  // <p>. That lets the operator add or remove paragraphs
+  // without us hardcoding a fixed number of slots.
+  // ============================================================
+  {
+    key: "about.hero.eyebrow",
+    label: "About hero — eyebrow",
+    group: "About page",
+    context: "The small caps chip on the /about hero (e.g. \"About\")",
+    fallback: "About",
+  },
+  {
+    key: "about.hero.title",
+    label: "About hero — title",
+    group: "About page",
+    context: "The main hero headline on /about",
+    fallback: "A family kitchen, scaled with care.",
+  },
+  {
+    key: "about.hero.lede",
+    label: "About hero — lede",
+    group: "About page",
+    context: "The subhead under the hero title on /about",
+    fallback: "Born from a stovetop, run like a hotel.",
+    multiline: true,
+  },
+  {
+    key: "about.story.eyebrow",
+    label: "About story — eyebrow",
+    group: "About page",
+    context: "The capsmall chip above the story heading (e.g. \"The story\")",
+    fallback: "The story",
+  },
+  {
+    key: "about.story.heading",
+    label: "About story — heading",
+    group: "About page",
+    context: "The maroon serif headline above the story body",
+    fallback: "Cooking has always been our way of holding people.",
+  },
+  {
+    key: "about.story.body",
+    label: "About story — body",
+    group: "About page",
+    context:
+      "The story copy under the heading. Separate paragraphs with a blank line; each chunk renders as its own paragraph.",
+    fallback:
+      "Nimi began at a family table, in a kitchen that always seemed to expand to fit one more chair. The smell of jollof simmering on a Sunday afternoon, the laughter that followed plates being passed around — that's where this story starts. Authentically African flavours, served the way they were meant to be: with care, with intent, with love.\n\nWhat was a Sunday ritual became a small business, and then a team, and then a calendar of weddings, corporate days and quiet birthdays across the UK. Through every shift, the standard hasn't moved. We cook real food, we serve it with care, and we treat every event like our own.\n\nWhether you're ordering a single gift box or planning a wedding for two hundred guests, you'll get the same answer when you call: what do you need?",
+    multiline: true,
+  },
+  {
+    key: "about.social.eyebrow",
+    label: "About — social eyebrow",
+    group: "About page",
+    context: "The small label above the social links at the bottom of /about",
+    fallback: "Stay close",
+  },
+
+  // ============================================================
+  // Content creation page — hero + intro + three format cards
+  // + bookings strip. Same pattern as About: every editable
+  // string is its own setting, body fields are multiline.
+  // ============================================================
+  {
+    key: "contentCreation.hero.eyebrow",
+    label: "Content hero — eyebrow",
+    group: "Content creation page",
+    context: "The capsmall chip on the /content-creation hero",
+    fallback: "Content creation",
+  },
+  {
+    key: "contentCreation.hero.title",
+    label: "Content hero — title",
+    group: "Content creation page",
+    context: "The hero headline on /content-creation",
+    fallback: "Event media, captured well.",
+  },
+  {
+    key: "contentCreation.hero.lede",
+    label: "Content hero — lede",
+    group: "Content creation page",
+    context: "The subhead under the hero title on /content-creation",
+    fallback:
+      "Mobile videography and photography for weddings, brand activations, and milestone celebrations — by the same team that runs your day.",
+    multiline: true,
+  },
+  {
+    key: "contentCreation.intro.eyebrow",
+    label: "Content intro — eyebrow",
+    group: "Content creation page",
+    context: "The capsmall chip above the intro paragraph (e.g. \"What we cover\")",
+    fallback: "What we cover",
+  },
+  {
+    key: "contentCreation.intro.heading",
+    label: "Content intro — heading",
+    group: "Content creation page",
+    context: "The maroon serif headline above the intro paragraph",
+    fallback: "One crew. Two formats. Quietly capturing.",
+  },
+  {
+    key: "contentCreation.intro.body",
+    label: "Content intro — body",
+    group: "Content creation page",
+    context:
+      "The intro paragraph under the heading. Separate paragraphs with a blank line.",
+    fallback:
+      "We work alongside your event team — never in the way of your guests — to capture the room as it is. Photography for the album, mobile-first videography for the feed, delivered fast and finished cleanly. Available stand-alone, or bundled with our catering and event-planning services.",
+    multiline: true,
+  },
+  {
+    key: "contentCreation.format.photography.eyebrow",
+    label: "Photography card — eyebrow",
+    group: "Content creation page",
+    context: "The capsmall chip on the Photography format card",
+    fallback: "Photography",
+  },
+  {
+    key: "contentCreation.format.photography.title",
+    label: "Photography card — title",
+    group: "Content creation page",
+    context: "The headline on the Photography format card",
+    fallback: "Stills that hold the moment.",
+  },
+  {
+    key: "contentCreation.format.photography.description",
+    label: "Photography card — description",
+    group: "Content creation page",
+    context: "The description text on the Photography format card",
+    fallback:
+      "Editorial-style photography that captures the room, the food, the people, and the small details that make the day feel like yours.",
+    multiline: true,
+  },
+  {
+    key: "contentCreation.format.videography.eyebrow",
+    label: "Videography card — eyebrow",
+    group: "Content creation page",
+    context: "The capsmall chip on the Videography format card",
+    fallback: "Mobile videography",
+  },
+  {
+    key: "contentCreation.format.videography.title",
+    label: "Videography card — title",
+    group: "Content creation page",
+    context: "The headline on the Videography format card",
+    fallback: "Films, made for the feed.",
+  },
+  {
+    key: "contentCreation.format.videography.description",
+    label: "Videography card — description",
+    group: "Content creation page",
+    context: "The description text on the Videography format card",
+    fallback:
+      "Same-day reels and short films optimised for social — fast turnaround, cinematic feel, ready to share before the night is over.",
+    multiline: true,
+  },
+  {
+    key: "contentCreation.format.delivery.eyebrow",
+    label: "Delivery card — eyebrow",
+    group: "Content creation page",
+    context: "The capsmall chip on the Delivery format card",
+    fallback: "Delivery",
+  },
+  {
+    key: "contentCreation.format.delivery.title",
+    label: "Delivery card — title",
+    group: "Content creation page",
+    context: "The headline on the Delivery format card",
+    fallback: "Quick, considered, branded.",
+  },
+  {
+    key: "contentCreation.format.delivery.description",
+    label: "Delivery card — description",
+    group: "Content creation page",
+    context: "The description text on the Delivery format card",
+    fallback:
+      "Edited highlight reels within 48 hours. Full galleries within two weeks. Optional brand-tagged versions for corporate clients.",
+    multiline: true,
+  },
+  {
+    key: "contentCreation.bookings.eyebrow",
+    label: "Bookings strip — eyebrow",
+    group: "Content creation page",
+    context: "The capsmall chip on the bookings strip at the bottom of /content-creation",
+    fallback: "Bookings",
+  },
+  {
+    key: "contentCreation.bookings.title",
+    label: "Bookings strip — title",
+    group: "Content creation page",
+    context: "The headline on the bookings strip (e.g. \"Pricing is custom.\")",
+    fallback: "Pricing is custom.",
+  },
+  {
+    key: "contentCreation.bookings.body",
+    label: "Bookings strip — body",
+    group: "Content creation page",
+    context: "The paragraph on the bookings strip",
+    fallback:
+      "Custom pricing based on event length, deliverables, and crew size. Minimum half-day bookings. Tell us about your event and we'll send a quote within one working day.",
+    multiline: true,
+  },
 ];
 
 interface SiteSettingRow {
