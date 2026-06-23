@@ -38,6 +38,18 @@ export interface SiteSettingRegistryEntry {
 
 export const SITE_SETTINGS_REGISTRY: readonly SiteSettingRegistryEntry[] = [
   // ============================================================
+  // Pastry orders — business rules.
+  // ============================================================
+  {
+    key: "pastry.order.minimum-pence",
+    label: "Minimum order amount",
+    group: "Pastry orders",
+    context:
+      "The minimum cart subtotal (in pence) before checkout is allowed. 2500 = £25.00. Changing this takes effect within 5 minutes — no deploy needed.",
+    fallback: "2500",
+  },
+
+  // ============================================================
   // Gifting — production timeline copy.
   //
   // Two related strings: a short tag-style pill ("Production 6–12 wks")
