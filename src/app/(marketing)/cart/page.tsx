@@ -7,6 +7,8 @@ import { Tag } from "@/components/primitives/Tag";
 import { apiFetch } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 
+import { siteSetting } from "@/lib/siteSettings";
+
 import { CartActions } from "./CartActions";
 import { CheckoutForm } from "./CheckoutForm";
 import { GuestCartSync } from "./GuestCartSync";
@@ -49,6 +51,7 @@ interface CartView {
   creditBalanceMinor: number;
   applicableCreditMinor: number;
   payableMinor: number;
+  minimumMinor: number;
   meetsMinimum: boolean;
   /** Every cart line clears its per-item minimum order quantity. */
   meetsAllItemMinimums: boolean;
@@ -79,6 +82,9 @@ export default async function CartPage({
   // Anonymous path — render the localStorage cart client-side.
   // ------------------------------------------------------------------
   if (!sessionUser) {
+    const minimumSetting = await siteSetting("pastry.order.minimum-pence");
+    const guestMinimumMinor = parseInt(minimumSetting, 10) || 2500;
+
     return (
       // Section wrapper mirrors every other marketing page (catering,
       // cravings, gifting, etc.) — gives the page proper top breathing
@@ -99,7 +105,7 @@ export default async function CartPage({
               </p>
             </div>
           ) : null}
-          <GuestCartView />
+          <GuestCartView minimumMinor={guestMinimumMinor} />
         </div>
       </section>
     );
@@ -313,8 +319,8 @@ export default async function CartPage({
               <div className="mt-4 flex flex-wrap gap-2">
                 <Tag variant={view.meetsMinimum ? "success" : "orange"}>
                   {view.meetsMinimum
-                    ? "Meets £25 minimum"
-                    : `£${((2500 - view.subtotalMinor) / 100).toFixed(2)} below minimum`}
+                    ? `Meets £${(view.minimumMinor / 100).toFixed(2)} minimum`
+                    : `£${((view.minimumMinor - view.subtotalMinor) / 100).toFixed(2)} below minimum`}
                 </Tag>
                 {/*
                   Per-item-minimum and batch-limit gates surface here
@@ -343,6 +349,7 @@ export default async function CartPage({
               </h2>
               <CheckoutForm
                 meetsMinimum={view.meetsMinimum}
+                minimumMinor={view.minimumMinor}
                 anyUnavailable={view.lines.some((l) => !l.available)}
                 meetsAllItemMinimums={view.meetsAllItemMinimums}
                 withinAllBatchLimits={view.withinAllBatchLimits}

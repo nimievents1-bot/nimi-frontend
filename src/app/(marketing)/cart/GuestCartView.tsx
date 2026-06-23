@@ -15,13 +15,6 @@ import {
   type GuestCartLine,
 } from "@/lib/guestCart";
 
-/**
- * The minimum cart subtotal we let the customer check out at — kept in
- * sync with the API's `PASTRY_CART_MIN_MINOR` so the guest summary
- * shows the same gate the server enforces. £25.
- */
-const MIN_SUBTOTAL_MINOR = 2500;
-
 const fmt = (minor: number, currency = "gbp") =>
   new Intl.NumberFormat("en-GB", {
     style: "currency",
@@ -44,7 +37,7 @@ const fmt = (minor: number, currency = "gbp") =>
  *   - We listen on the cart-updated event so quantity edits in this
  *     view immediately update the header badge and the summary.
  */
-export function GuestCartView() {
+export function GuestCartView({ minimumMinor = 2500 }: { minimumMinor?: number }) {
   const router = useRouter();
   const [lines, setLines] = useState<GuestCartLine[]>([]);
   // `hydrated` distinguishes "we haven't loaded yet" from "we
@@ -75,7 +68,7 @@ export function GuestCartView() {
       0,
     );
     const currency = lines[0]?.currency ?? "gbp";
-    const meetsMinimum = subtotalMinor >= MIN_SUBTOTAL_MINOR;
+    const meetsMinimum = subtotalMinor >= minimumMinor;
     return { subtotalMinor, currency, meetsMinimum };
   }, [lines]);
 
@@ -221,8 +214,8 @@ export function GuestCartView() {
           <div className="mt-4 flex flex-wrap gap-2">
             <Tag variant={summary.meetsMinimum ? "success" : "orange"}>
               {summary.meetsMinimum
-                ? "Meets £25 minimum"
-                : `£${((MIN_SUBTOTAL_MINOR - summary.subtotalMinor) / 100).toFixed(2)} below minimum`}
+                ? `Meets £${(minimumMinor / 100).toFixed(2)} minimum`
+                : `£${((minimumMinor - summary.subtotalMinor) / 100).toFixed(2)} below minimum`}
             </Tag>
           </div>
           <p className="mt-4 font-sans text-xs text-neutral-500">
@@ -264,7 +257,7 @@ export function GuestCartView() {
           </button>
           {!summary.meetsMinimum ? (
             <p className="mt-3 text-center font-sans text-xs text-neutral-500">
-              Add a few more items to reach the £25 minimum before checkout.
+              Add a few more items to reach the £{(minimumMinor / 100).toFixed(2)} minimum before checkout.
             </p>
           ) : null}
         </section>

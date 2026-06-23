@@ -20,6 +20,8 @@ interface CheckoutDefaults {
 
 interface CheckoutFormProps {
   meetsMinimum: boolean;
+  /** Active minimum order floor in minor units — shown in the helper text. */
+  minimumMinor: number;
   anyUnavailable: boolean;
   /**
    * Every cart line meets its item's per-item minimum order quantity.
@@ -65,6 +67,7 @@ interface CheckoutFormProps {
  */
 export function CheckoutForm({
   meetsMinimum,
+  minimumMinor,
   anyUnavailable,
   meetsAllItemMinimums,
   withinAllBatchLimits,
@@ -507,7 +510,7 @@ export function CheckoutForm({
         */}
         {!meetsMinimum ? (
           <p className="mt-3 text-center font-sans text-xs text-neutral-500">
-            Add a few more items to reach the £25 minimum before checkout.
+            Add a few more items to reach the £{(minimumMinor / 100).toFixed(2)} minimum before checkout.
           </p>
         ) : anyUnavailable ? (
           <p className="mt-3 text-center font-sans text-xs text-semantic-danger">
