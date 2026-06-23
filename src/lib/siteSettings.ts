@@ -42,10 +42,10 @@ export const SITE_SETTINGS_REGISTRY: readonly SiteSettingRegistryEntry[] = [
   // ============================================================
   {
     key: "pastry.order.minimum-pence",
-    label: "Minimum order amount",
+    label: "Minimum order amount (in pence)",
     group: "Pastry orders",
     context:
-      "The minimum cart subtotal (in pence) before checkout is allowed. 2500 = £25.00. Changing this takes effect within 5 minutes — no deploy needed.",
+      "Enter the minimum as a whole number of pence — NOT pounds. Examples: 100 = £1.00 · 500 = £5.00 · 2500 = £25.00. Do NOT include £ or a decimal point. Takes effect within 5 minutes.",
     fallback: "2500",
   },
 
